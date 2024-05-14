@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'view/screens/home_screen.dart';
-import 'view/screens/scan_screen.dart';
-import 'view/screens/notifications_screen.dart';
+import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/scan_screen.dart';
+import 'presentation/screens/notifications_screen.dart';
 
 void main() {
   runApp(MyApp());
