@@ -1,6 +1,6 @@
+import 'package:expiremind/presentation/screens/inventory_screen.dart';
 import 'package:flutter/material.dart';
 
-import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/scan_screen.dart';
 import 'presentation/screens/notifications_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -23,9 +23,9 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   int _selectedIndex = 0;
   final List<Widget> _screens = [
-    HomeScreen(),
+    InventoryScreen(),
     ScanScreen(),
-    NotificationsScreen(),
+    NotificationsScreen()
   ];
 
   void _onItemTapped(int index) {
@@ -47,12 +47,12 @@ class _MyAppState extends State<MyApp> {
           onTap: _onItemTapped,
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
+              icon: Icon(Icons.list),
+              label: 'Inventory',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.qr_code_scanner),
-              label: 'Scan',
+              icon: Icon(Icons.local_fire_department),
+              label: 'Prepare',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.notifications),
