@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/enums/product_category.dart';
@@ -10,6 +12,8 @@ import '../../domain/enums/unit.dart';
 import '../../domain/models/product.dart';
 
 class AddProductForm extends StatefulWidget {
+  const AddProductForm({super.key});
+
   @override
   _AddProductFormState createState() => _AddProductFormState();
 }
@@ -22,7 +26,7 @@ class _AddProductFormState extends State<AddProductForm> {
   Unit _unit = Unit.unit;
   Category _category = Category.other;
   StorageLocation _storage = StorageLocation.cabinet;
-  DateTime? _buyDate; // Nullable DateTime for optional buy date
+  DateTime? _buyDate;
   DateTime _expiryDate = DateTime.now().add(const Duration(days: 30));
 
   @override
@@ -46,7 +50,7 @@ class _AddProductFormState extends State<AddProductForm> {
       final quantity = double.parse(_quantityController.text);
 
       final product = Product(
-        id: Uuid().v4(),
+        id: const Uuid().v4(),
         name: name,
         // Use the name from the controller
         quantity: quantity,
@@ -84,31 +88,69 @@ class _AddProductFormState extends State<AddProductForm> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Add Product'),
-      content: Form(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Add Product'),
+      ),
+      body: Form(
         key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextFormField(
-                key: ValueKey('nameInput'),
-                decoration: InputDecoration(labelText: 'Name'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a product name.';
-                  }
-                  return null;
-                },
-                controller: _nameController,
-              ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Name
+                Text(
+                  'Product Name',
+                  style: GoogleFonts.poppins(
+                      textStyle:
+                          const TextStyle(color: Colors.black, fontSize: 18.0)),
+                ),
+                const SizedBox(height: 5.0),
+                TextFormField(
+                  key: const ValueKey('nameInput'),
+                  decoration: InputDecoration(
+                    hintText: 'Name',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  style: GoogleFonts.poppins(
+                    textStyle: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 14.0,
+                    ),
+                  ),
+                  controller: _nameController,
+                ),
 
-              Row(
-                children: [
-                  Flexible(
-                    child: TextFormField(
-                      key: ValueKey('quantityInput'),
-                      decoration: InputDecoration(labelText: 'Quantity'),
+                const SizedBox(height: 20.0),
+
+                // Quantity
+                Text(
+                  'Total Product',
+                  style: GoogleFonts.poppins(
+                      textStyle:
+                      const TextStyle(color: Colors.black, fontSize: 18.0)),
+                ),
+                const SizedBox(height: 5.0),
+                Column(
+                  children: [
+                    TextFormField(
+                      key: const ValueKey('quantityInput'),
+                      decoration: InputDecoration(
+                        hintText: '1.0',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
+                      style: GoogleFonts.poppins(
+                        textStyle: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 14.0,
+                        ),
+                      ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -120,111 +162,209 @@ class _AddProductFormState extends State<AddProductForm> {
                       },
                       controller: _quantityController,
                     ),
-                  ),
-                  SizedBox(
-                    width: 100.0,
-                    child: DropdownButtonFormField<Unit>(
+
+                    const SizedBox(height: 5.0),
+
+                    DropdownButtonFormField<Unit>(
                       value: _unit,
                       items: Unit.values
                           .map((unit) => DropdownMenuItem(
-                                value: unit,
-                                child: Text(unit.name),
-                              ))
+                        value: unit,
+                        child: Text(
+                          unit.name,
+                          style: GoogleFonts.poppins(
+                            textStyle: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 14.0,
+                            ),
+                          ),
+                        ),
+                      ))
                           .toList(),
-                      onChanged: (unit) => setState(() => _unit = unit!),
-                      validator: (value) =>
-                          value == null ? 'Please select a unit.' : null,
+                      onChanged: (value) => setState(() => _unit = value!),
+                      validator: (value) => value == null ? 'Please select a value.' : null,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.all(8.0),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
                     ),
-                  )
-                ],
-              ),
+                  ],
+                ),
 
-              DropdownButtonFormField<Category>(
-                value: _category, // Set initial category
-                items: Category.values
-                    .map((category) => DropdownMenuItem(
-                          value: category,
-                          child: Text(category.name),
-                        ))
-                    .toList(),
-                onChanged: (category) => setState(() => _category = category!),
-                validator: (value) =>
-                    value == null ? 'Please select a category.' : null,
-              ),
+                const SizedBox(height: 20.0),
 
-              // Storage location dropdown
-              DropdownButtonFormField<StorageLocation>(
-                value: _storage, // Set initial storage location
-                items: StorageLocation.values
-                    .map((storage) => DropdownMenuItem(
-                          value: storage,
-                          child: Text(storage.name),
-                        ))
-                    .toList(),
-                onChanged: (storage) => setState(() => _storage = storage!),
-                validator: (value) =>
-                    value == null ? 'Please select a storage location.' : null,
-              ),
-
-              // Optional buy date picker
-              // You might need to install a date picker package for this
-              Text('Buy Date (Optional)'),
-              Row(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.calendar_today),
-                    onPressed: () async {
-                      final pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: _buyDate ?? DateTime.now(),
-                        firstDate: DateTime(2015, 8),
-                        lastDate: DateTime.now(),
-                      );
-                      if (pickedDate != null) {
-                        setState(() => _buyDate = pickedDate);
-                      }
-                    },
+                // Category
+                Text(
+                  'Product Category',
+                  style: GoogleFonts.poppins(
+                      textStyle:
+                      const TextStyle(color: Colors.black, fontSize: 18.0)),
+                ),
+                const SizedBox(height: 5.0),
+                DropdownButtonFormField<Category>(
+                  value: _category,
+                  items: Category.values
+                      .map((unit) => DropdownMenuItem(
+                    value: unit,
+                    child: Text(
+                      unit.name,
+                      style: GoogleFonts.poppins(
+                        textStyle: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 14.0,
+                        ),
+                      ),
+                    ),
+                  ))
+                      .toList(),
+                  onChanged: (value) => setState(() => _category = value!),
+                  validator: (value) => value == null ? 'Please select a value.' : null,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.all(8.0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
                   ),
-                  Text(_buyDate?.toString() ?? 'No buy date selected'),
-                ],
-              ),
+                ),
 
-              // Expiry date picker
-              Text('Expiry Date'),
-              Row(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.calendar_today),
-                    onPressed: () async {
-                      final pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: _expiryDate,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(
-                            days: 365 * 10)), // Allow future dates for a year
-                      );
-                      if (pickedDate != null) {
-                        setState(() => _expiryDate = pickedDate);
-                      }
-                    },
+                const SizedBox(height: 20.0),
+
+                // Storage Location
+                Text(
+                  'Storage Location',
+                  style: GoogleFonts.poppins(
+                      textStyle:
+                      const TextStyle(color: Colors.black, fontSize: 18.0)),
+                ),
+                const SizedBox(height: 5.0),
+                DropdownButtonFormField<StorageLocation>(
+                  value: _storage,
+                  items: StorageLocation.values
+                      .map((unit) => DropdownMenuItem(
+                    value: unit,
+                    child: Text(
+                      unit.name,
+                      style: GoogleFonts.poppins(
+                        textStyle: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 14.0,
+                        ),
+                      ),
+                    ),
+                  ))
+                      .toList(),
+                  onChanged: (value) => setState(() => _storage = value!),
+                  validator: (value) => value == null ? 'Please select a value.' : null,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.all(8.0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
                   ),
-                  Text(_expiryDate?.toString() ?? 'No expiry date selected'),
-                ],
-              ),
-            ],
+                ),
+
+                const SizedBox(height: 20.0),
+
+                // Date Information
+                Text(
+                  'Date Information',
+                  style: GoogleFonts.poppins(
+                      textStyle:
+                      const TextStyle(color: Colors.black, fontSize: 18.0)),
+                ),
+                const SizedBox(height: 5.0),
+
+                // Buy Date
+                Text(
+                  'Buy Date',
+                  style: GoogleFonts.poppins(
+                      textStyle:
+                      const TextStyle(color: Colors.black, fontSize: 14.0)),
+                ),
+                const SizedBox(height: 2.0),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.calendar_today),
+                      onPressed: () async {
+                        final pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: _buyDate ?? DateTime.now(),
+                          firstDate: DateTime(2015, 8),
+                          lastDate: DateTime.now(),
+                        );
+                        if (pickedDate != null) {
+                          setState(() => _buyDate = pickedDate.toUtc().toLocal()); // Remove time component
+                        }
+                      },
+                    ),
+                    Text(
+                      _buyDate != null
+                          ? DateFormat('dd-MM-yyyy').format(_buyDate!)
+                          : 'No buy date selected',
+                      style: GoogleFonts.poppins(
+                        textStyle: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 14.0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Expiry Date
+                Text(
+                  'Expiry Date',
+                  style: GoogleFonts.poppins(
+                      textStyle:
+                      const TextStyle(color: Colors.black, fontSize: 14.0)),
+                ),
+                const SizedBox(height: 2.0),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.calendar_today),
+                      onPressed: () async {
+                        final pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: _expiryDate,
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now()
+                              .add(const Duration(days: 365 * 10)),
+                        );
+                        if (pickedDate != null) {
+                          setState(() => _expiryDate = pickedDate.toUtc().toLocal());
+                        }
+                      },
+                    ),
+                    Text(DateFormat('dd-MM-yyyy').format(_expiryDate),
+                      style: GoogleFonts.poppins(
+                        textStyle: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 14.0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10.0), // Add spacing between sections
+
+                // Full-width button
+                ElevatedButton(
+                  onPressed: _addProduct, // Assuming you have an _addProduct function defined
+                  child: const Text('Add Product'),
+                  style: ElevatedButton.styleFrom(
+                    textStyle: const TextStyle(fontSize: 16.0), // Adjust font size as needed
+                    minimumSize: const Size(double.infinity, 40.0), // Full width, set desired height
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _addProduct,
-          child: Text('Add'),
-        ),
-      ],
     );
   }
 }
