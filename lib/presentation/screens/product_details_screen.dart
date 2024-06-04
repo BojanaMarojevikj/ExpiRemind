@@ -11,7 +11,7 @@ import '../../domain/enums/unit.dart';
 import '../../domain/models/product.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
-  final Product product; // Pass the product data from previous screen
+  final Product product;
 
   const ProductDetailsScreen({super.key, required this.product});
 
@@ -31,8 +31,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   StorageLocation _storage = StorageLocation.cabinet;
   DateTime? _buyDate;
   DateTime _expiryDate = DateTime.now().add(const Duration(days: 30));
-
-  // Load product details on initState
 
   @override
   void initState() {
@@ -73,7 +71,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
       await _updateProductToFirestore(product);
 
-      Navigator.of(context).pop(true);
+      Navigator.pop(context, true);
     }
   }
 
@@ -92,7 +90,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     });
   }
 
-  // Delete product from Firestore
   Future<void> _deleteProduct() async {
     await Firebase.initializeApp();
 
@@ -100,10 +97,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
     await collection.doc(widget.product.id).delete();
 
-    Navigator.of(context).pop(true);
+    final popped = Navigator.of(context).pop();
+
+    Navigator.pop(context, true);
   }
 
-  // Toggles edit mode
   void _toggleEditMode() => setState(() => _isEditEnabled = !_isEditEnabled);
 
   @override
@@ -112,12 +110,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         appBar: AppBar(
           title: const Text('Product Details'),
           actions: [
-            // Edit button to toggle edit mode
             IconButton(
               icon: Icon(_isEditEnabled ? Icons.save : Icons.edit),
               onPressed: _toggleEditMode,
             ),
-            // Delete button (confirmation dialog recommended before deletion)
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () => showDialog(
@@ -155,8 +151,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       textStyle:
                           const TextStyle(color: Colors.black, fontSize: 18.0)),
                 ),
-                //   ],
-                // ),
                 const SizedBox(height: 5.0),
 
                 TextFormField(
@@ -255,7 +249,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
                 const SizedBox(height: 20.0),
 
-                // Category (disabled in edit mode)
+                // Category
                 Text(
                   'Product Category',
                   style: GoogleFonts.poppins(
@@ -272,7 +266,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           fontSize: 14.0,
                         ),
                       )),
-                  // Display category name when disabled
                   items: Category.values
                       .map((unit) => DropdownMenuItem(
                             value: unit,
@@ -297,7 +290,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
-                  ),// Remove validation in view mode
+                  ),
                 ),
 
                 const SizedBox(height: 20.0),
@@ -319,7 +312,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           fontSize: 14.0,
                         ),
                       )),
-                  // Display storage location name when disabled
                   items: StorageLocation.values
                       .map((unit) => DropdownMenuItem(
                             value: unit,
@@ -358,7 +350,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
                 const SizedBox(height: 5.0),
 
-                // Buy Date (disabled in edit mode)
+                // Buy Date
                 Text(
                   'Buy Date',
                   style: GoogleFonts.poppins(
@@ -432,7 +424,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
 
                 const SizedBox(height: 10.0),
-                // Add spacing between sections
 
                 _isEditEnabled
                     ? ElevatedButton(

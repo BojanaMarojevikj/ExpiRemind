@@ -102,12 +102,18 @@ class _InventoryScreenState extends State<InventoryScreen> {
               itemBuilder: (context, index) {
                 final product = _productList[index];
                 return InkWell(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProductDetailsScreen(product: product),
-                    ),
-                  ),
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProductDetailsScreen(product: product),
+                      ),
+                    );
+
+                    if (result == true) {
+                      _updateProductList();
+                    }
+                  },
                   child: InventoryItemWidget(product: product),
                 );
               },
