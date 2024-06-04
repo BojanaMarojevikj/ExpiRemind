@@ -40,7 +40,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'My App',
+      title: 'ExpiRemind',
       theme: ThemeData(),
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),

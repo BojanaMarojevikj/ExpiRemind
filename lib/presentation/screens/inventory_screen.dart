@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expiremind/domain/models/product.dart';
+import 'package:expiremind/presentation/screens/product_details_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -100,7 +101,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
               itemCount: _productList.length,
               itemBuilder: (context, index) {
                 final product = _productList[index];
-                return InventoryItemWidget(product: product);
+                return InkWell(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProductDetailsScreen(product: product),
+                    ),
+                  ),
+                  child: InventoryItemWidget(product: product),
+                );
               },
             ),
           ),
