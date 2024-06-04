@@ -1,10 +1,12 @@
 import 'package:expiremind/domain/models/product.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../domain/enums/product_category.dart';
 import '../../domain/enums/storage_location.dart';
 import '../../domain/enums/unit.dart';
 import '../widgets/inventory_item_widget.dart';
+import 'login_screen.dart';
 
 
 class InventoryScreen extends StatelessWidget {
@@ -51,6 +53,15 @@ class InventoryScreen extends StatelessWidget {
             icon: const Icon(Icons.add),
             onPressed: () {
               // Implement functionality to add a new product (later)
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut(); // Sign out the user
+              Navigator.of(context).pushReplacement( // Navigate to LoginScreen
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
             },
           ),
         ],
