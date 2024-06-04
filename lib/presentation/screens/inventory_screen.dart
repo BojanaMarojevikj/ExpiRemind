@@ -16,6 +16,9 @@ class InventoryScreen extends StatefulWidget {
 }
 class _InventoryScreenState extends State<InventoryScreen> {
   List<Product> _productList = [];
+  List<Product> _filteredList = [];
+
+  String _searchText = "";
 
   @override
   void initState() {
@@ -33,6 +36,18 @@ class _InventoryScreenState extends State<InventoryScreen> {
     setState(() {
       _productList =
           querySnapshot.docs.map((doc) => Product.fromSnapshot(doc)).toList();
+      _filteredList = _productList;
+    });
+  }
+
+  void _onSearchTextChanged(String text) {
+    setState(() {
+      _searchText = text;
+      if (text.isEmpty) {
+        _filteredList = _productList;
+      } else {
+        _filteredList = _productList.where((product) => product.name.toLowerCase().contains(text.toLowerCase())).toList();
+      }
     });
   }
 
@@ -94,13 +109,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   fontSize: 14.0,
                 ),
               ),
+              onChanged: _onSearchTextChanged,
             ),
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: _productList.length,
+              itemCount: _filteredList.length,
               itemBuilder: (context, index) {
-                final product = _productList[index];
+                final product = _filteredList[index];
                 return InkWell(
                   onTap: () async {
                     final result = await Navigator.push(
