@@ -20,8 +20,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
   List<Product> _productList = [];
   List<Product> _filteredList = [];
 
-  String _searchText = "";
-
   @override
   void initState() {
     super.initState();
@@ -38,7 +36,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   void _onSearchTextChanged(String text) {
     setState(() {
-      _searchText = text;
       if (text.isEmpty) {
         _filteredList = _productList;
       } else {
