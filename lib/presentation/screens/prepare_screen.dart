@@ -92,12 +92,6 @@ class _PrepareScreenState extends State<PrepareScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Prepare'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Column(
         children: [
