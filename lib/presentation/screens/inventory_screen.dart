@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expiremind/application/services/product_service.dart';
 import 'package:expiremind/domain/models/product.dart';
 import 'package:expiremind/presentation/screens/product_details_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,6 +15,8 @@ class InventoryScreen extends StatefulWidget {
   State<InventoryScreen> createState() => _InventoryScreenState();
 }
 class _InventoryScreenState extends State<InventoryScreen> {
+  final ProductService _productService = ProductService();
+
   List<Product> _productList = [];
   List<Product> _filteredList = [];
 
@@ -27,15 +29,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   void _updateProductList() async {
-    final collection = FirebaseFirestore.instance.collection('products');
-
-    final querySnapshot = await collection
-        .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-        .get();
-
+    final products = await _productService.getProducts();
     setState(() {
-      _productList =
-          querySnapshot.docs.map((doc) => Product.fromSnapshot(doc)).toList();
+      _productList = products;
       _filteredList = _productList;
     });
   }
