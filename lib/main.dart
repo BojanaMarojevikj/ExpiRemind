@@ -3,7 +3,7 @@ import 'package:expiremind/presentation/screens/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'presentation/screens/scan_screen.dart';
+import 'presentation/screens/prepare_screen.dart';
 import 'presentation/screens/notifications_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -26,7 +26,7 @@ class _MyAppState extends State<MyApp> {
   int _selectedIndex = 0;
   final List<Widget> _screens = [
     InventoryScreen(),
-    ScanScreen(),
+    PrepareScreen(),
     NotificationsScreen()
   ];
 
