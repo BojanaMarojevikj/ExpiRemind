@@ -27,7 +27,7 @@ class _AddProductFormState extends State<AddProductForm> {
   Category _category = Category.other;
   StorageLocation _storage = StorageLocation.cabinet;
   DateTime? _buyDate;
-  DateTime _expiryDate = DateTime.now().add(const Duration(days: 30));
+  DateTime _expiryDate = DateTime.now();
 
   @override
   void initState() {
