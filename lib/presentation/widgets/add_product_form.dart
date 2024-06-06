@@ -1,11 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../application/services/product_service.dart';
 import '../../domain/enums/product_category.dart';
 import '../../domain/enums/storage_location.dart';
 import '../../domain/enums/unit.dart';
@@ -20,6 +19,8 @@ class AddProductForm extends StatefulWidget {
 
 class _AddProductFormState extends State<AddProductForm> {
   final _formKey = GlobalKey<FormState>();
+
+  final ProductService _productService = ProductService();
 
   final _nameController = TextEditingController();
   final _quantityController = TextEditingController();
@@ -45,16 +46,13 @@ class _AddProductFormState extends State<AddProductForm> {
 
   Future<void> _addProduct() async {
     if (_formKey.currentState!.validate()) {
-      // Use the values from the controllers
       final name = _nameController.text;
       final quantity = double.parse(_quantityController.text);
 
       final product = Product(
         id: const Uuid().v4(),
         name: name,
-        // Use the name from the controller
         quantity: quantity,
-        // Use the quantity from the controller
         unit: _unit,
         category: _category,
         storage: _storage,
@@ -62,28 +60,10 @@ class _AddProductFormState extends State<AddProductForm> {
         userId: FirebaseAuth.instance.currentUser!.uid,
       );
 
-      // Add product to Firestore
-      await _addProductToFirestore(product);
+      await _productService.addProduct(product);
 
       Navigator.of(context).pop(product);
     }
-  }
-
-  Future<void> _addProductToFirestore(Product product) async {
-    await Firebase.initializeApp();
-
-    final collection = FirebaseFirestore.instance.collection('products');
-
-    await collection.add({
-      'id': product.id,
-      'name': product.name,
-      'quantity': product.quantity,
-      'unit': product.unit.name,
-      'category': product.category.name,
-      'storage': product.storage.name,
-      'expiryDate': product.expiryDate.toIso8601String(),
-      'userId': FirebaseAuth.instance.currentUser!.uid,
-    });
   }
 
   @override
@@ -296,7 +276,7 @@ class _AddProductFormState extends State<AddProductForm> {
                           lastDate: DateTime.now(),
                         );
                         if (pickedDate != null) {
-                          setState(() => _buyDate = pickedDate.toUtc().toLocal()); // Remove time component
+                          setState(() => _buyDate = pickedDate.toUtc().toLocal());
                         }
                       },
                     ),
@@ -349,15 +329,14 @@ class _AddProductFormState extends State<AddProductForm> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10.0), // Add spacing between sections
+                const SizedBox(height: 10.0),
 
-                // Full-width button
                 ElevatedButton(
-                  onPressed: _addProduct, // Assuming you have an _addProduct function defined
+                  onPressed: _addProduct,
                   child: const Text('Add Product'),
                   style: ElevatedButton.styleFrom(
-                    textStyle: const TextStyle(fontSize: 16.0), // Adjust font size as needed
-                    minimumSize: const Size(double.infinity, 40.0), // Full width, set desired height
+                    textStyle: const TextStyle(fontSize: 16.0),
+                    minimumSize: const Size(double.infinity, 40.0),
                   ),
                 ),
               ],

@@ -1,10 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../application/services/product_service.dart';
 import '../../domain/enums/product_category.dart';
 import '../../domain/enums/storage_location.dart';
 import '../../domain/enums/unit.dart';
@@ -21,6 +20,8 @@ class ProductDetailsScreen extends StatefulWidget {
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  final ProductService _productService = ProductService();
 
   bool _isEditEnabled = false;
 
@@ -69,36 +70,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         userId: FirebaseAuth.instance.currentUser!.uid,
       );
 
-      await _updateProductToFirestore(product);
-
+      await _productService.updateProduct(product);
       Navigator.pop(context, true);
     }
   }
 
-  Future<void> _updateProductToFirestore(Product product) async {
-    await Firebase.initializeApp();
-
-    final collection = FirebaseFirestore.instance.collection('products');
-
-    await collection.doc(product.id).update({
-      'name': product.name,
-      'quantity': product.quantity,
-      'unit': product.unit.name,
-      'category': product.category.name,
-      'storage': product.storage.name,
-      'expiryDate': product.expiryDate.toIso8601String(),
-    });
-  }
-
   Future<void> _deleteProduct() async {
-    await Firebase.initializeApp();
-
-    final collection = FirebaseFirestore.instance.collection('products');
-
-    await collection.doc(widget.product.id).delete();
-
-    final popped = Navigator.of(context).pop();
-
+    await _productService.deleteProduct(widget.product.id);
+    Navigator.of(context).pop();
     Navigator.pop(context, true);
   }
 
