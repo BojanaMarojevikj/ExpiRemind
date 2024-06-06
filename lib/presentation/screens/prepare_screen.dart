@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:expiremind/domain/models/product.dart';
 import 'package:expiremind/presentation/widgets/inventory_item_widget.dart';
 import 'package:expiremind/service/openai_service.dart';
+import 'dart:developer' as developer;
 
 class PrepareScreen extends StatefulWidget {
   @override
@@ -68,24 +69,80 @@ class _PrepareScreenState extends State<PrepareScreen> {
     OpenAIService openAIService = OpenAIService();
     String productNames = _selectedProducts.map((p) => p.name).join(', ');
     String prompt =
-        "I have the following products: $productNames. Suggest a recipe using them. Use simple words.";
+        "I have the following products: $productNames. Can you suggest a recipe using them? Follow this format:\n\nTitle: <title>\nDescription: <one sentence description>\nIngredients: <comma-separated ingredients>\nSteps: <numbered steps>";
 
     final recommendation = await openAIService.getRecommendations(prompt: prompt);
     if (recommendation != null) {
-      FirebaseFirestore.instance.collection('recommendations').add({
-        'userId': FirebaseAuth.instance.currentUser!.uid,
-        'recommendation': recommendation,
-        'timestamp': Timestamp.now(),
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Recommendation: $recommendation')),
-      );
+      final titlePattern = RegExp(r"Title:\s*(.*?)\s*Description:", caseSensitive: false);
+      final descriptionPattern = RegExp(r"Description:\s*(.*?)\s*Ingredients:", caseSensitive: false);
+      final ingredientsPattern = RegExp(r"Ingredients:\s*(.*?)\s*Steps:", caseSensitive: false);
+      final stepsPattern = RegExp(r"Steps:\s*(.*)", caseSensitive: false);
+
+      final titleMatch = titlePattern.firstMatch(recommendation);
+      final descriptionMatch = descriptionPattern.firstMatch(recommendation);
+      final ingredientsMatch = ingredientsPattern.firstMatch(recommendation);
+      final stepsMatch = stepsPattern.firstMatch(recommendation);
+
+      if (titleMatch != null && descriptionMatch != null && ingredientsMatch != null && stepsMatch != null) {
+        final title = titleMatch.group(1);
+        final description = descriptionMatch.group(1);
+        final ingredientsString = ingredientsMatch.group(1);
+        final stepsString = stepsMatch.group(1);
+
+        if (title != null && description != null && ingredientsString != null && stepsString != null) {
+          final ingredients = ingredientsString.split(',').map((e) => e.trim()).toList();
+          final steps = stepsString.split(RegExp(r'\d+\.\s')).where((s) => s.isNotEmpty).map((s) => s.trim()).toList();
+
+          final imagePrompt = "Generate an image for $title";
+          final imageUrl = await openAIService.generateImage(imagePrompt);
+
+          if (imageUrl != null) {
+            FirebaseFirestore.instance.collection('recipes').add({
+              'userId': FirebaseAuth.instance.currentUser!.uid,
+              'title': title,
+              'description': description,
+              'ingredients': ingredients,
+              'steps': steps,
+              'image': imageUrl,
+              'timestamp': Timestamp.now(),
+            });
+
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text('Recipe Image'),
+                content: Image.network(imageUrl),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('Close'),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Failed to generate recipe image')),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to parse recommendation')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to parse recommendation')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to get recommendation')),
       );
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +196,7 @@ class _PrepareScreenState extends State<PrepareScreen> {
             child: ElevatedButton(
               onPressed:
               _selectedProducts.isNotEmpty ? _getRecipes : null,
-              child: const Text('Generate Recipes'),
+              child: const Text('Generate Recipe'),
             ),
           ),
         ],

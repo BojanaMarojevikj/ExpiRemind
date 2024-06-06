@@ -37,4 +37,36 @@ class OpenAIService {
       return null;
     }
   }
+
+  Future<String?> generateImage(String prompt) async {
+    String apiKey = Env.key;
+    const String baseUrl = "https://api.openai.com/v1/images/generations";
+    final Map<String, String> headers = {
+      "Authorization": "Bearer $apiKey",
+      "Content-Type": "application/json; charset=utf-8",
+    };
+
+    final body = jsonEncode({
+      "model": "dall-e-3",
+      "prompt": prompt,
+      "n": 1,
+      "size": "1024x1024"
+    });
+
+    try {
+      final response = await http.post(Uri.parse(baseUrl), headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final imageUrl = data["data"][0]["url"] as String;
+        return imageUrl;
+      } else {
+        print("Error: ${response.statusCode}");
+        return null;
+      }
+    } catch (error) {
+      print("Error: $error");
+      return null;
+    }
+  }
 }

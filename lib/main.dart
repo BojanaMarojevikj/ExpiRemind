@@ -1,10 +1,10 @@
 import 'package:expiremind/presentation/screens/inventory_screen.dart';
 import 'package:expiremind/presentation/screens/login_screen.dart';
+import 'package:expiremind/presentation/screens/recipes_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'presentation/screens/prepare_screen.dart';
-import 'presentation/screens/notifications_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -27,7 +27,7 @@ class _MyAppState extends State<MyApp> {
   final List<Widget> _screens = [
     InventoryScreen(),
     PrepareScreen(),
-    NotificationsScreen()
+    RecipesScreen()
   ];
 
   void _onItemTapped(int index) {
@@ -60,12 +60,12 @@ class _MyAppState extends State<MyApp> {
                     label: 'Inventory',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.local_fire_department),
+                    icon: Icon(Icons.auto_fix_high),
                     label: 'Prepare',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.notifications),
-                    label: 'Notifications',
+                    icon: Icon(Icons.restaurant_menu),
+                    label: 'My recipes',
                   ),
                 ],
               ),
