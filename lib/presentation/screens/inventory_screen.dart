@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/add_product_form.dart';
 import '../widgets/inventory_item_widget.dart';
+import 'package:expiremind/presentation/widgets/search_bar.dart';
 import 'login_screen.dart';
 
 class InventoryScreen extends StatefulWidget {
@@ -86,25 +87,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search Inventory...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-              style: GoogleFonts.poppins(
-                textStyle: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 14.0,
-                ),
-              ),
-              onChanged: _onSearchTextChanged,
-            ),
-          ),
+          ExpiRemindSearchBar(onChanged: _onSearchTextChanged),
           Expanded(
             child: ListView.builder(
               itemCount: _filteredList.length,

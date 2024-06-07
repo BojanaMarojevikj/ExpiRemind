@@ -7,6 +7,8 @@ import 'package:expiremind/presentation/widgets/inventory_item_widget.dart';
 import 'package:expiremind/service/openai_service.dart';
 import 'dart:developer' as developer;
 
+import '../widgets/search_bar.dart';
+
 class PrepareScreen extends StatefulWidget {
   @override
   _PrepareScreenState createState() => _PrepareScreenState();
@@ -152,23 +154,7 @@ class _PrepareScreenState extends State<PrepareScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search Inventory...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 14.0,
-              ),
-              onChanged: _onSearchTextChanged,
-            ),
-          ),
+          ExpiRemindSearchBar(onChanged: _onSearchTextChanged),
           Expanded(
             child: ListView.builder(
               itemCount: _filteredList.length,
