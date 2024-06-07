@@ -3,7 +3,6 @@ import 'package:expiremind/domain/models/product.dart';
 import 'package:expiremind/presentation/screens/product_details_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../domain/enums/product_category.dart';
 import '../widgets/add_product_form.dart';
 import '../widgets/category_icon_selector.dart';
@@ -17,6 +16,7 @@ class InventoryScreen extends StatefulWidget {
   @override
   State<InventoryScreen> createState() => _InventoryScreenState();
 }
+
 class _InventoryScreenState extends State<InventoryScreen> {
   final ProductService _productService = ProductService();
 
@@ -56,8 +56,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
   void _filterProducts() {
     setState(() {
       _filteredList = _productList.where((product) {
-        final matchesCategory = _selectedCategory == null || product.category == _selectedCategory;
-        final matchesSearchText = product.name.toLowerCase().contains(_searchText.toLowerCase());
+        final matchesCategory =
+            _selectedCategory == null || product.category == _selectedCategory;
+        final matchesSearchText =
+            product.name.toLowerCase().contains(_searchText.toLowerCase());
         return matchesCategory && matchesSearchText;
       }).toList();
     });
@@ -67,11 +69,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Inventory',
-          style: GoogleFonts.poppins(
-              textStyle: const TextStyle(color: Colors.black, fontSize: 20.0)),
-        ),
+        title: const Text('Inventory'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -121,7 +119,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProductDetailsScreen(product: product),
+                        builder: (context) =>
+                            ProductDetailsScreen(product: product),
                       ),
                     );
 
@@ -139,5 +138,3 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 }
-
-

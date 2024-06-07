@@ -68,7 +68,7 @@ class _MyAppState extends State<MyApp> {
             fontWeight: FontWeight.bold,
           ),
           titleLarge: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: 24,
           ),
           bodyMedium: GoogleFonts.poppins(),
           displaySmall: GoogleFonts.poppins(),
