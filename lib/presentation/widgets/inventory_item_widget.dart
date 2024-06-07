@@ -90,12 +90,4 @@ class InventoryItemWidget extends StatelessWidget {
     }
   }
 
-  final Map<Category, IconData> categoryIconMap = {
-    Category.food: Icons.fastfood,
-    Category.beverage: Icons.emoji_food_beverage_rounded,
-    Category.medicine : Icons.medication,
-    Category.cleaning: Icons.clean_hands_rounded,
-    Category.other: Icons.more_horiz
-  };
-
 }

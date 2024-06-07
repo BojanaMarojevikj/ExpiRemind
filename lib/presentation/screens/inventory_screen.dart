@@ -4,7 +4,9 @@ import 'package:expiremind/presentation/screens/product_details_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../domain/enums/product_category.dart';
 import '../widgets/add_product_form.dart';
+import '../widgets/category_icon_selector.dart';
 import '../widgets/inventory_item_widget.dart';
 import 'package:expiremind/presentation/widgets/search_bar.dart';
 import 'login_screen.dart';
@@ -20,6 +22,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   List<Product> _productList = [];
   List<Product> _filteredList = [];
+  String _searchText = '';
+  Category? _selectedCategory;
 
   @override
   void initState() {
@@ -31,17 +35,31 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final products = await _productService.getProducts();
     setState(() {
       _productList = products;
-      _filteredList = _productList;
+      _filterProducts();
     });
   }
 
   void _onSearchTextChanged(String text) {
     setState(() {
-      if (text.isEmpty) {
-        _filteredList = _productList;
-      } else {
-        _filteredList = _productList.where((product) => product.name.toLowerCase().contains(text.toLowerCase())).toList();
-      }
+      _searchText = text;
+      _filterProducts();
+    });
+  }
+
+  void _onCategorySelected(Category? category) {
+    setState(() {
+      _selectedCategory = _selectedCategory == category ? null : category;
+      _filterProducts();
+    });
+  }
+
+  void _filterProducts() {
+    setState(() {
+      _filteredList = _productList.where((product) {
+        final matchesCategory = _selectedCategory == null || product.category == _selectedCategory;
+        final matchesSearchText = product.name.toLowerCase().contains(_searchText.toLowerCase());
+        return matchesCategory && matchesSearchText;
+      }).toList();
     });
   }
 
@@ -88,6 +106,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
       body: Column(
         children: [
           ExpiRemindSearchBar(onChanged: _onSearchTextChanged),
+          CategoryIconSelector(
+            categoryIconMap: categoryIconMap,
+            selectedCategory: _selectedCategory,
+            onCategorySelected: _onCategorySelected,
+          ),
           Expanded(
             child: ListView.builder(
               itemCount: _filteredList.length,
