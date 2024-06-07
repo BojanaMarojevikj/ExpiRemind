@@ -45,3 +45,12 @@ app.*.map.json
 linux/flutter/
 windows/flutter/
 macos/flutter/
+
+.env
+android/app/google-services.json
+firebase.json
+lib/.env
+lib/domain/models/env.g.dart
+lib/firebase_options.dart
+
+
