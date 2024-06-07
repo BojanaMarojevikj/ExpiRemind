@@ -5,7 +5,6 @@ import 'package:firebase_core/firebase_core.dart';
 import '../../domain/models/product.dart';
 
 class ProductRepository {
-
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -14,7 +13,12 @@ class ProductRepository {
     final querySnapshot = await collection
         .where('userId', isEqualTo: _auth.currentUser!.uid)
         .get();
-    return querySnapshot.docs.map((doc) => Product.fromSnapshot(doc)).toList();
+
+    final products =
+        querySnapshot.docs.map((doc) => Product.fromSnapshot(doc)).toList();
+    products.sort((a, b) => a.expiryDate.compareTo(b.expiryDate));
+
+    return products;
   }
 
   Future<void> addProduct(Product product) async {
