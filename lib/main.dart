@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:connectivity/connectivity.dart';
 import 'package:expiremind/presentation/screens/inventory_screen.dart';
 import 'package:expiremind/presentation/screens/login_screen.dart';
 import 'package:expiremind/presentation/screens/recipes_screen.dart';
@@ -9,8 +12,7 @@ import 'presentation/screens/prepare_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -31,12 +33,41 @@ class _MyAppState extends State<MyApp> {
     RecipesScreen()
   ];
 
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start listening for connectivity changes
+    _connectivitySubscription =
+        Connectivity().onConnectivityChanged.listen((result) {
+      if (result == ConnectivityResult.none) {
+        // No internet connection
+        // Handle the absence of connectivity (e.g., show error message)
+        // You can show a snackbar or a dialog to inform the user
+        print('No internet connection'); // Add this for debugging
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No internet connection'),
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    // Cancel the subscription when the widget is disposed
+    _connectivitySubscription.cancel();
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +92,6 @@ class _MyAppState extends State<MyApp> {
           seedColor: customColor,
           brightness: Brightness.light,
         ),
-
         textTheme: TextTheme(
           displayLarge: const TextStyle(
             fontSize: 50,
