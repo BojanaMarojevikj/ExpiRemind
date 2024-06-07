@@ -64,11 +64,11 @@ class _MyAppState extends State<MyApp> {
 
         textTheme: TextTheme(
           displayLarge: const TextStyle(
-            fontSize: 30,
+            fontSize: 50,
             fontWeight: FontWeight.bold,
           ),
           titleLarge: GoogleFonts.poppins(
-            fontSize: 30,
+            fontSize: 16,
           ),
           bodyMedium: GoogleFonts.poppins(),
           displaySmall: GoogleFonts.poppins(),
