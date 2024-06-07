@@ -3,7 +3,6 @@ import 'package:expiremind/domain/models/recipe.dart';
 import 'package:expiremind/presentation/screens/recipe_details_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../widgets/recipe_widget.dart';
 
@@ -31,7 +30,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
           .get();
 
       setState(() {
-        _recipes = querySnapshot.docs.map((doc) => Recipe.fromSnapshot(doc)).toList();
+        _recipes =
+            querySnapshot.docs.map((doc) => Recipe.fromSnapshot(doc)).toList();
       });
     } catch (error) {
       print("Error fetching recipes: $error");
@@ -42,12 +42,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'My Recipes',
-          style: GoogleFonts.poppins(
-            textStyle: const TextStyle(color: Colors.black, fontSize: 20.0),
-          ),
-        ),
+        title: const Text('My Recipes'),
       ),
       body: ListView.builder(
         itemCount: _recipes.length,

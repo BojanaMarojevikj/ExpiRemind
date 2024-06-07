@@ -71,7 +71,7 @@ class InventoryItemWidget extends StatelessWidget {
   }
 
   String _getExpiryLabel(int daysRemaining) {
-    if (daysRemaining == 0) {
+    if (daysRemaining <= 0) {
       return 'Expired';
     } else if (daysRemaining == 1) {
       return '1 Day Left';
@@ -81,7 +81,7 @@ class InventoryItemWidget extends StatelessWidget {
   }
 
   Color _getExpiryColor(int daysRemaining) {
-    if (daysRemaining == 0) {
+    if (daysRemaining <= 0) {
       return Colors.redAccent;
     } else if (daysRemaining <= 3) {
       return Colors.deepOrangeAccent;
@@ -89,13 +89,5 @@ class InventoryItemWidget extends StatelessWidget {
       return Colors.green;
     }
   }
-
-  final Map<Category, IconData> categoryIconMap = {
-    Category.food: Icons.fastfood,
-    Category.beverage: Icons.emoji_food_beverage_rounded,
-    Category.medicine : Icons.medication,
-    Category.cleaning: Icons.clean_hands_rounded,
-    Category.other: Icons.more_horiz
-  };
 
 }

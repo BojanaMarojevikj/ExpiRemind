@@ -3,9 +3,11 @@ import 'package:expiremind/domain/models/product.dart';
 import 'package:expiremind/presentation/screens/product_details_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../domain/enums/product_category.dart';
 import '../widgets/add_product_form.dart';
+import '../widgets/category_icon_selector.dart';
 import '../widgets/inventory_item_widget.dart';
+import 'package:expiremind/presentation/widgets/search_bar.dart';
 import 'login_screen.dart';
 
 class InventoryScreen extends StatefulWidget {
@@ -14,11 +16,14 @@ class InventoryScreen extends StatefulWidget {
   @override
   State<InventoryScreen> createState() => _InventoryScreenState();
 }
+
 class _InventoryScreenState extends State<InventoryScreen> {
   final ProductService _productService = ProductService();
 
   List<Product> _productList = [];
   List<Product> _filteredList = [];
+  String _searchText = '';
+  Category? _selectedCategory;
 
   @override
   void initState() {
@@ -30,17 +35,33 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final products = await _productService.getProducts();
     setState(() {
       _productList = products;
-      _filteredList = _productList;
+      _filterProducts();
     });
   }
 
   void _onSearchTextChanged(String text) {
     setState(() {
-      if (text.isEmpty) {
-        _filteredList = _productList;
-      } else {
-        _filteredList = _productList.where((product) => product.name.toLowerCase().contains(text.toLowerCase())).toList();
-      }
+      _searchText = text;
+      _filterProducts();
+    });
+  }
+
+  void _onCategorySelected(Category? category) {
+    setState(() {
+      _selectedCategory = _selectedCategory == category ? null : category;
+      _filterProducts();
+    });
+  }
+
+  void _filterProducts() {
+    setState(() {
+      _filteredList = _productList.where((product) {
+        final matchesCategory =
+            _selectedCategory == null || product.category == _selectedCategory;
+        final matchesSearchText =
+            product.name.toLowerCase().contains(_searchText.toLowerCase());
+        return matchesCategory && matchesSearchText;
+      }).toList();
     });
   }
 
@@ -48,11 +69,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Inventory',
-          style: GoogleFonts.poppins(
-              textStyle: const TextStyle(color: Colors.black, fontSize: 20.0)),
-        ),
+        title: const Text('Inventory'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -86,24 +103,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search Inventory...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-              style: GoogleFonts.poppins(
-                textStyle: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 14.0,
-                ),
-              ),
-              onChanged: _onSearchTextChanged,
-            ),
+          ExpiRemindSearchBar(onChanged: _onSearchTextChanged),
+          CategoryIconSelector(
+            categoryIconMap: categoryIconMap,
+            selectedCategory: _selectedCategory,
+            onCategorySelected: _onCategorySelected,
           ),
           Expanded(
             child: ListView.builder(
@@ -115,7 +119,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProductDetailsScreen(product: product),
+                        builder: (context) =>
+                            ProductDetailsScreen(product: product),
                       ),
                     );
 
@@ -133,5 +138,3 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 }
-
-

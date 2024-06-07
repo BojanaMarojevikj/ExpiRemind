@@ -7,12 +7,17 @@ import 'package:expiremind/presentation/widgets/inventory_item_widget.dart';
 import 'package:expiremind/service/openai_service.dart';
 import 'dart:developer' as developer;
 
+import '../../application/services/product_service.dart';
+import '../widgets/search_bar.dart';
+
 class PrepareScreen extends StatefulWidget {
   @override
   _PrepareScreenState createState() => _PrepareScreenState();
 }
 
 class _PrepareScreenState extends State<PrepareScreen> {
+  final ProductService _productService = ProductService();
+
   List<Product> _productList = [];
   List<Product> _selectedProducts = [];
   List<Product> _filteredList = [];
@@ -25,14 +30,11 @@ class _PrepareScreenState extends State<PrepareScreen> {
   }
 
   void _loadProducts() async {
-    final collection = FirebaseFirestore.instance.collection('products');
-    final querySnapshot = await collection
-        .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-        .get();
+    final products = await _productService.getProducts();
+
 
     setState(() {
-      _productList = querySnapshot.docs
-          .map((doc) => Product.fromSnapshot(doc))
+      _productList = products
           .where((product) =>
       product.category == Category.food ||
           product.category == Category.beverage)
@@ -152,23 +154,7 @@ class _PrepareScreenState extends State<PrepareScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search Inventory...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 14.0,
-              ),
-              onChanged: _onSearchTextChanged,
-            ),
-          ),
+          ExpiRemindSearchBar(onChanged: _onSearchTextChanged),
           Expanded(
             child: ListView.builder(
               itemCount: _filteredList.length,
