@@ -24,6 +24,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   List<Product> _filteredList = [];
   String _searchText = '';
   Category? _selectedCategory;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -31,11 +32,21 @@ class _InventoryScreenState extends State<InventoryScreen> {
     _updateProductList();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   void _updateProductList() async {
+    setState(() {
+      _isLoading = true;
+    });
     final products = await _productService.getProducts();
+    if (!mounted) return;
     setState(() {
       _productList = products;
       _filterProducts();
+      _isLoading = false;
     });
   }
 
@@ -110,28 +121,30 @@ class _InventoryScreenState extends State<InventoryScreen> {
             onCategorySelected: _onCategorySelected,
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: _filteredList.length,
-              itemBuilder: (context, index) {
-                final product = _filteredList[index];
-                return InkWell(
-                  onTap: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            ProductDetailsScreen(product: product),
-                      ),
-                    );
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    itemCount: _filteredList.length,
+                    itemBuilder: (context, index) {
+                      final product = _filteredList[index];
+                      return InkWell(
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProductDetailsScreen(product: product),
+                            ),
+                          );
 
-                    if (result == true) {
-                      _updateProductList();
-                    }
-                  },
-                  child: InventoryItemWidget(product: product),
-                );
-              },
-            ),
+                          if (result == true) {
+                            _updateProductList();
+                          }
+                        },
+                        child: InventoryItemWidget(product: product),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
