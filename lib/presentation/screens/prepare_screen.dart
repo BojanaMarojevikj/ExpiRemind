@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:expiremind/domain/models/product.dart';
 import 'package:expiremind/presentation/widgets/inventory_item_widget.dart';
 import 'package:expiremind/service/openai_service.dart';
-import 'dart:developer' as developer;
 
 import '../../application/services/product_service.dart';
 import '../widgets/search_bar.dart';
@@ -97,7 +96,6 @@ class _PrepareScreenState extends State<PrepareScreen> {
       final descriptionPattern = RegExp(r"Description:\s*(.*?)\s*Ingredients:", caseSensitive: false);
       final ingredientsPattern = RegExp(r"Ingredients:\s*(.*?)\s*Steps:", caseSensitive: false);
       final stepsPattern = RegExp(r"Steps:\s*([\s\S]*)", caseSensitive: false);
-      final stepPattern = RegExp(r"^\d+\.\s*(.*)");
 
       final titleMatch = titlePattern.firstMatch(recommendation);
       final descriptionMatch = descriptionPattern.firstMatch(recommendation);
