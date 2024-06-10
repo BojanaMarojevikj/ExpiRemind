@@ -66,7 +66,9 @@ class InventoryItemWidget extends StatelessWidget {
 
   int _getDaysRemaining(DateTime expiryDate) {
     final today = DateTime.now();
-    final difference = expiryDate.difference(today).inDays;
+    final todayDateOnly = DateTime(today.year, today.month, today.day);
+    final expiryDateOnly = DateTime(expiryDate.year, expiryDate.month, expiryDate.day);
+    final difference = expiryDateOnly.difference(todayDateOnly).inDays;
     return difference;
   }
 

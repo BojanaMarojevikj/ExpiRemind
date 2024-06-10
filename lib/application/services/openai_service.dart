@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../domain/models/env.dart';
+import '../../domain/models/env.dart';
 
 class OpenAIService {
 
@@ -13,7 +13,7 @@ class OpenAIService {
     };
 
     final body = jsonEncode({
-      "model": "gpt-3.5-turbo",
+      "model": "gpt-4-turbo",
       "messages": [
         {"role": "user", "content": prompt}
       ],
