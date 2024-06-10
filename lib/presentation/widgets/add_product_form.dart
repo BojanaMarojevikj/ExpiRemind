@@ -245,6 +245,8 @@ class _AddProductFormState extends State<AddProductForm> {
       final name = _nameController.text;
       final quantity = double.parse(_quantityController.text);
 
+      final buyDate = _buyDate;
+
       final product = Product(
         id: const Uuid().v4(),
         name: name,
@@ -253,6 +255,7 @@ class _AddProductFormState extends State<AddProductForm> {
         category: _category,
         storage: _storage,
         expiryDate: _expiryDate,
+        buyDate: buyDate,
         userId: FirebaseAuth.instance.currentUser!.uid,
       );
 
