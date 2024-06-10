@@ -28,16 +28,22 @@ class Product {
     required this.userId,
   });
 
-  factory Product.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
+  factory Product.fromSnapshot(
+      DocumentSnapshot<Map<String, dynamic>> snapshot) {
+    final data = snapshot.data();
+    if (data == null) {
+      throw StateError('Missing data for product ID: ${snapshot.id}');
+    }
     return Product(
       id: snapshot.id,
-      name: snapshot.get('name') as String,
-      quantity: snapshot.get('quantity')! as double,
-      unit: unitFromString(snapshot.get('unit')),
-      category: categoryFromString(snapshot.get('category')),
-      storage: storageFromString(snapshot.get('storage')),
-      expiryDate: DateTime.parse(snapshot.get('expiryDate')),
-      userId: snapshot.get('userId') as String,
+      name: data['name'] as String,
+      quantity: data['quantity'] as double,
+      unit: unitFromString(data['unit']),
+      category: categoryFromString(data['category']),
+      storage: storageFromString(data['storage']),
+      expiryDate: DateTime.parse(data['expiryDate']),
+      buyDate: data['buyDate'] != null ? DateTime.parse(data['buyDate']) : null,
+      userId: data['userId'] as String,
     );
   }
 }
@@ -47,9 +53,11 @@ Unit unitFromString(String unit) {
 }
 
 Category categoryFromString(String category) {
-  return Category.values.firstWhere((e) => e.toString().split('.').last == category);
+  return Category.values
+      .firstWhere((e) => e.toString().split('.').last == category);
 }
 
 StorageLocation storageFromString(String storage) {
-  return StorageLocation.values.firstWhere((e) => e.toString().split('.').last == storage);
+  return StorageLocation.values
+      .firstWhere((e) => e.toString().split('.').last == storage);
 }

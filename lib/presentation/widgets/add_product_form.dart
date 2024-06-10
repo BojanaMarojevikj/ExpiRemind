@@ -43,11 +43,12 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   // Form field and validation logic here (omitted for brevity)
-
   Future<void> _addProduct() async {
     if (_formKey.currentState!.validate()) {
       final name = _nameController.text;
       final quantity = double.parse(_quantityController.text);
+
+      final buyDate = _buyDate;
 
       final product = Product(
         id: const Uuid().v4(),
@@ -57,6 +58,7 @@ class _AddProductFormState extends State<AddProductForm> {
         category: _category,
         storage: _storage,
         expiryDate: _expiryDate,
+        buyDate: buyDate,
         userId: FirebaseAuth.instance.currentUser!.uid,
       );
 
@@ -65,6 +67,7 @@ class _AddProductFormState extends State<AddProductForm> {
       Navigator.of(context).pop(product);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
