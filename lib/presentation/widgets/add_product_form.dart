@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
@@ -30,6 +34,10 @@ class _AddProductFormState extends State<AddProductForm> {
   DateTime? _buyDate;
   DateTime _expiryDate = DateTime.now();
 
+  File? _image;
+  String _detectedText = '';
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +51,194 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   // Form field and validation logic here (omitted for brevity)
+
+  Future<void> _getImage() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final pickedFile =
+    await ImagePicker().pickImage(source: ImageSource.camera);
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+
+      await _scanText();
+
+      setState(() {
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _scanText() async {
+    if (_image == null) return;
+
+    final inputImage = InputImage.fromFile(_image!);
+    final textDetector = TextRecognizer();
+    final RecognizedText recognisedText =
+    await textDetector.processImage(inputImage);
+
+    String detectedText = recognisedText.text;
+
+    setState(() {
+      _detectedText = detectedText;
+    });
+    print('Detected text: $_detectedText');
+
+    _extractDateFromText(detectedText);
+
+    textDetector.close();
+  }
+
+  void _extractDateFromText(String text) {
+    // Comprehensive regex pattern to capture various date formats
+    final datePattern = RegExp(
+      r'\b(?:'
+      r'(\d{1,2}[./-]\d{1,2}[./-]\d{2,4})|' // Matches 01.01.27, 01/01/2027, etc.
+      r'(\d{1,2}\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{2,4})|' // Matches 01 jan 27, 01 jan 2027, etc.
+      r'(\d{4}[./-]\d{1,2})|' // Matches 2027.01, 2027-01, etc.
+      r'(\d{1,2}\s+\d{4})|' // Matches 01 2027
+      r'(\d{1,2}[./-]\d{4})|' // Matches 01.2027
+      r'(\d{1,2}[./-]\d{1,2}[./-]\d{4})|' // Matches 05/02/2026
+      r'(\d{1,2}\s+\d{1,2}\s+\d{4})|' // Matches 24 06 2024
+      r'(\d{2}[./-\s]\d{4})|' // Matches 13-2024, 13/2024, 13.2024
+      r'(\d{4}[./-\s]\d{2})|' // Matches 2024-12, 2024/12, 2024.12
+      r'(\d{1,2}[./\s]\d{4})' // Matches 12 2024
+      r')\b',
+      caseSensitive: false,
+    );
+
+    final match = datePattern.firstMatch(text);
+
+    if (match != null) {
+      final dateString = match.group(0);
+
+      if (dateString != null) {
+        try {
+          // Handle "dd-MM-yyyy" and "dd.MM.yyyy" format
+          final parsedDate1 = DateFormat('dd-MM-yyyy').parseStrict(dateString.replaceAll(RegExp(r'[./\s]'), '-'));
+          setState(() {
+            _expiryDate = parsedDate1;
+          });
+          print('Parsed date (dd-MM-yyyy): $_expiryDate');
+          return;
+        } catch (e) {}
+
+        try {
+          // Handle "MM-dd-yyyy" format
+          final parsedDate2 = DateFormat('MM-dd-yyyy').parseStrict(dateString.replaceAll(RegExp(r'[./\s]'), '-'));
+          setState(() {
+            _expiryDate = parsedDate2;
+          });
+          print('Parsed date (MM-dd-yyyy): $_expiryDate');
+          return;
+        } catch (e) {}
+
+        try {
+          // Handle "MM/yyyy" and "MM.yyyy" by assuming the first day of the month
+          final partialDatePattern = RegExp(r'(\d{1,2})[./\s](\d{4})');
+          final partialMatch = partialDatePattern.firstMatch(dateString);
+          if (partialMatch != null) {
+            int? month;
+            int? year;
+
+            if (partialMatch.group(1) != null && partialMatch.group(2) != null) {
+              // Matches MM/yyyy or MM.yyyy
+              month = int.parse(partialMatch.group(1)!);
+              year = int.parse(partialMatch.group(2)!);
+            }
+
+            if (month != null && year != null) {
+              final parsedDate3 = DateTime(year, month, 1);
+              setState(() {
+                _expiryDate = parsedDate3;
+              });
+              print('Parsed partial date: $_expiryDate');
+              return;
+            } else {
+              print('Failed to parse date: $dateString');
+              return;
+            }
+          }
+        } catch (e) {}
+
+        try {
+          // Handle "yyyy/MM"  by assuming the first day of the month
+          final partialDatePattern = RegExp(r'(\d{4})[./\s](\d{1,2})');
+          final partialMatch = partialDatePattern.firstMatch(dateString);
+          if (partialMatch != null) {
+            int? month;
+            int? year;
+
+            if (partialMatch.group(1) != null && partialMatch.group(2) != null) {
+              // Matches MM/yyyy or MM.yyyy
+              month = int.parse(partialMatch.group(2)!);
+              year = int.parse(partialMatch.group(1)!);
+            }
+
+            if (month != null && year != null) {
+              final parsedDate3 = DateTime(year, month, 1);
+              setState(() {
+                _expiryDate = parsedDate3;
+              });
+              print('Parsed partial date: $_expiryDate');
+              return;
+            } else {
+              print('Failed to parse date: $dateString');
+              return;
+            }
+          }
+        } catch (e) {}
+
+
+        try {
+          // Handle "MM/dd/yyyy" format for 05/02/2026
+          final parsedDate4 = DateFormat('MM/dd/yyyy').parseStrict(dateString);
+          setState(() {
+            _expiryDate = parsedDate4;
+          });
+          print('Parsed date (MM/dd/yyyy): $_expiryDate');
+          return;
+        } catch (e) {}
+
+        // If none of the formats match, show a popup
+        _showPopup('Failed to parse date: $dateString');
+        print('Failed to parse date: $dateString');
+      }
+    } else {
+      _showPopup('No valid date found in the text.');
+    }
+  }
+
+
+
+  void _showPopup(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Notice'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   Future<void> _addProduct() async {
     if (_formKey.currentState!.validate()) {
@@ -304,28 +500,49 @@ class _AddProductFormState extends State<AddProductForm> {
                 const SizedBox(height: 2.0),
                 Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.calendar_today),
-                      onPressed: () async {
-                        final pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: _expiryDate,
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now()
-                              .add(const Duration(days: 365 * 10)),
-                        );
-                        if (pickedDate != null) {
-                          setState(() => _expiryDate = pickedDate.toUtc().toLocal());
-                        }
-                      },
-                    ),
-                    Text(DateFormat('dd-MM-yyyy').format(_expiryDate),
-                      style: GoogleFonts.poppins(
-                        textStyle: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 14.0,
-                        ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.calendar_today),
+                            onPressed: () async {
+                              final pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: _expiryDate,
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime.now()
+                                    .add(const Duration(days: 365 * 10)),
+                              );
+                              if (pickedDate != null) {
+                                setState(() => _expiryDate =
+                                    pickedDate.toUtc().toLocal());
+                              }
+                            },
+                          ),
+                          Text(
+                            DateFormat('dd-MM-yyyy').format(_expiryDate),
+                            style: GoogleFonts.poppins(
+                              textStyle: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 14.0,
+                              ),
+                            ),
+                          ),
+                          if (_isLoading)
+                            const Padding(
+                              padding: EdgeInsets.only(left: 8.0),
+                              child: SizedBox(
+                                width: 20.0,
+                                height: 20.0,
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                        ],
                       ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.document_scanner_outlined),
+                      onPressed: _getImage,
                     ),
                   ],
                 ),
