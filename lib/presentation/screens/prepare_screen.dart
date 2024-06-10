@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:expiremind/domain/models/product.dart';
 import 'package:expiremind/presentation/widgets/inventory_item_widget.dart';
-import 'package:expiremind/service/openai_service.dart';
+import 'package:expiremind/application/services/openai_service.dart';
 
 import '../../application/services/product_service.dart';
 import '../widgets/search_bar.dart';
