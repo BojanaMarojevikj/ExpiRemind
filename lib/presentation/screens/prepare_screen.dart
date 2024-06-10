@@ -1,6 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expiremind/application/services/recipe_service.dart';
 import 'package:expiremind/domain/enums/product_category.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:expiremind/domain/models/product.dart';
 import 'package:expiremind/presentation/widgets/inventory_item_widget.dart';
@@ -16,6 +15,8 @@ class PrepareScreen extends StatefulWidget {
 
 class _PrepareScreenState extends State<PrepareScreen> {
   final ProductService _productService = ProductService();
+  final RecipeService _recipeService = RecipeService();
+  final OpenAIService _openAIService = OpenAIService();
 
   List<Product> _productList = [];
   List<Product> _selectedProducts = [];
@@ -66,7 +67,7 @@ class _PrepareScreenState extends State<PrepareScreen> {
     });
   }
 
-  Future<void> _getRecipes() async {
+  Future<void> _getRecipe() async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -85,12 +86,11 @@ class _PrepareScreenState extends State<PrepareScreen> {
       ),
     );
 
-    OpenAIService openAIService = OpenAIService();
     String productNames = _selectedProducts.map((p) => p.name).join(', ');
     String prompt =
         "I have the following products: $productNames. Can you suggest a recipe using them? Follow this format:\n\nTitle: <title>\nDescription: <one sentence description>\nIngredients: <comma-separated ingredients>\nSteps: <numbered steps>";
 
-    final recommendation = await openAIService.getRecommendations(prompt: prompt);
+    final recommendation = await _openAIService.getRecommendations(prompt: prompt);
     if (recommendation != null) {
       final titlePattern = RegExp(r"Title:\s*(.*?)\s*Description:", caseSensitive: false);
       final descriptionPattern = RegExp(r"Description:\s*(.*?)\s*Ingredients:", caseSensitive: false);
@@ -113,21 +113,11 @@ class _PrepareScreenState extends State<PrepareScreen> {
           final steps = stepsString.split(RegExp(r'\d+\.\s')).where((s) => s.isNotEmpty).map((s) => s.trim()).toList();
 
           final imagePrompt = "Generate an image for $title";
-          final imageUrl = await openAIService.generateImage(imagePrompt);
+          final imageUrl = await _openAIService.generateImage(imagePrompt);
 
           if (imageUrl != null) {
-            FirebaseFirestore.instance.collection('recipes').add({
-              'userId': FirebaseAuth.instance.currentUser!.uid,
-              'title': title,
-              'description': description,
-              'ingredients': ingredients,
-              'steps': steps,
-              'image': imageUrl,
-              'timestamp': Timestamp.now(),
-            });
-
+            _recipeService.addRecipe(title, description, ingredients, steps, imageUrl);
             Navigator.of(context).pop();
-
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
@@ -198,7 +188,7 @@ class _PrepareScreenState extends State<PrepareScreen> {
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
               onPressed:
-              _selectedProducts.isNotEmpty ? _getRecipes : null,
+              _selectedProducts.isNotEmpty ? _getRecipe : null,
               child: const Text('Generate Recipe'),
             ),
           ),
