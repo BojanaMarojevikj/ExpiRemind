@@ -25,7 +25,7 @@ class ProductRepository {
     await Firebase.initializeApp();
     final collection = _firestore.collection('products');
 
-    await collection.add({
+    final productData = {
       'id': product.id,
       'name': product.name,
       'quantity': product.quantity,
@@ -34,20 +34,35 @@ class ProductRepository {
       'storage': product.storage.name,
       'expiryDate': product.expiryDate.toIso8601String(),
       'userId': _auth.currentUser!.uid,
-    });
+    };
+
+    if (product.buyDate != null) {
+      productData['buyDate'] = product.buyDate!.toIso8601String();
+    }
+
+    await collection.add(productData);
   }
+
 
   Future<void> updateProduct(Product product) async {
     final collection = _firestore.collection('products');
-    await collection.doc(product.id).update({
+
+    final updateData = {
       'name': product.name,
       'quantity': product.quantity,
       'unit': product.unit.name,
       'category': product.category.name,
       'storage': product.storage.name,
       'expiryDate': product.expiryDate.toIso8601String(),
-    });
+    };
+
+    if (product.buyDate != null) {
+      updateData['buyDate'] = product.buyDate!.toIso8601String();
+    }
+
+    await collection.doc(product.id).update(updateData);
   }
+
 
   Future<void> deleteProduct(String productId) async {
     final collection = _firestore.collection('products');
