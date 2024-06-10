@@ -68,6 +68,24 @@ class _PrepareScreenState extends State<PrepareScreen> {
   }
 
   Future<void> _getRecipes() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text("Generating recipe..."),
+            ],
+          ),
+        ),
+      ),
+    );
+
     OpenAIService openAIService = OpenAIService();
     String productNames = _selectedProducts.map((p) => p.name).join(', ');
     String prompt =
@@ -78,7 +96,8 @@ class _PrepareScreenState extends State<PrepareScreen> {
       final titlePattern = RegExp(r"Title:\s*(.*?)\s*Description:", caseSensitive: false);
       final descriptionPattern = RegExp(r"Description:\s*(.*?)\s*Ingredients:", caseSensitive: false);
       final ingredientsPattern = RegExp(r"Ingredients:\s*(.*?)\s*Steps:", caseSensitive: false);
-      final stepsPattern = RegExp(r"Steps:\s*(.*)", caseSensitive: false);
+      final stepsPattern = RegExp(r"Steps:\s*([\s\S]*)", caseSensitive: false);
+      final stepPattern = RegExp(r"^\d+\.\s*(.*)");
 
       final titleMatch = titlePattern.firstMatch(recommendation);
       final descriptionMatch = descriptionPattern.firstMatch(recommendation);
@@ -109,11 +128,12 @@ class _PrepareScreenState extends State<PrepareScreen> {
               'timestamp': Timestamp.now(),
             });
 
+            Navigator.of(context).pop();
+
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
-                title: Text('Recipe Image'),
-                content: Image.network(imageUrl),
+                title: Text('Recipe generated successfully!'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -143,7 +163,6 @@ class _PrepareScreenState extends State<PrepareScreen> {
       );
     }
   }
-
 
 
   @override
