@@ -67,9 +67,9 @@ class _AddProductFormState extends State<AddProductForm> {
 
       await _productService.addProduct(product);
 
-      _notificationService.scheduleNotification(product.id.hashCode, 'Product expired', 'Your product ${product.name} has expired.', _expiryDate);
-      _notificationService.scheduleNotification(product.id.hashCode + 1, 'Product Expiring Soon', 'Your product ${product.name} is expiring today.', _expiryDate.subtract(const Duration(days: 1)).add(const Duration(hours: 12)));
-      _notificationService.scheduleNotification(product.id.hashCode + 2, 'Product Expiring Soon', 'Your product ${product.name} is expiring soon.', _expiryDate.subtract(const Duration(days: 3)).add(const Duration(hours: 12)));
+      _notificationService.scheduleNotification(product.id.hashCode, 'Product Expired', 'Your product ${product.name} has expired.', _expiryDate);
+      _notificationService.scheduleNotification(product.id.hashCode + 1, 'Product Expiring Today', 'Your product ${product.name} expires today. Check whether it is still usable and use it as soon as possible.', _expiryDate.subtract(const Duration(days: 1)).add(const Duration(hours: 12)));
+      _notificationService.scheduleNotification(product.id.hashCode + 2, 'Product Expiring Soon', 'Your product ${product.name} is about to expire. Use it or share it with someone you know.', _expiryDate.subtract(const Duration(days: 3)).add(const Duration(hours: 12)));
 
       Navigator.of(context).pop(product);
     }
