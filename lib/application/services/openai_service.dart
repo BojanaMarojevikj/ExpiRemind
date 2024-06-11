@@ -5,7 +5,7 @@ import '../../domain/models/env.dart';
 class OpenAIService {
 
   Future<String?> getRecommendations({required String prompt}) async {
-    String apiKey = Env.key;
+    String apiKey = Env.openaiApiKey;
     const String baseUrl = "https://api.openai.com/v1/chat/completions";
     final Map<String, String> headers = {
       "Authorization": "Bearer $apiKey",
@@ -39,7 +39,7 @@ class OpenAIService {
   }
 
   Future<String?> generateImage(String prompt) async {
-    String apiKey = Env.key;
+    String apiKey = Env.openaiApiKey;
     const String baseUrl = "https://api.openai.com/v1/images/generations";
     final Map<String, String> headers = {
       "Authorization": "Bearer $apiKey",

@@ -2,8 +2,11 @@ import 'package:envied/envied.dart';
 
 part 'env.g.dart';
 
-@envied
+@Envied(path: '.env')
 abstract class Env {
   @EnviedField(varName: 'OPENAI_API_KEY')
-  static const String key = _Env.key;
+  static const String openaiApiKey = _Env.openaiApiKey;
+
+  @EnviedField(varName: 'BARCODE_LOOKUP_API_KEY')
+  static const String barcodeLookupApiKey = _Env.barcodeLookupApiKey;
 }

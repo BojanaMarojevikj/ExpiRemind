@@ -1,17 +1,21 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:http/http.dart' as http;
 
 import '../../application/services/product_service.dart';
 import '../../domain/enums/product_category.dart';
 import '../../domain/enums/storage_location.dart';
 import '../../domain/enums/unit.dart';
+import '../../domain/models/env.dart';
 import '../../domain/models/product.dart';
 import '../../application/services/notification_service.dart';
 
@@ -211,7 +215,6 @@ class _AddProductFormState extends State<AddProductForm> {
           return;
         } catch (e) {}
 
-        // If none of the formats match, show a popup
         _showPopup('Failed to parse date: $dateString');
         print('Failed to parse date: $dateString');
       }
@@ -220,6 +223,48 @@ class _AddProductFormState extends State<AddProductForm> {
     }
   }
 
+  Future<void> _scanBarcode() async {
+    String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
+        '#ff6666', 'Cancel', true, ScanMode.BARCODE);
+
+    if (barcodeScanResult != '-1') {
+      await _fetchProductInfo(barcodeScanResult);
+    }
+  }
+
+  Future<void> _fetchProductInfo(String barcode) async {
+    String apiKey = Env.barcodeLookupApiKey;
+    final url =
+        'https://api.barcodelookup.com/v3/products?barcode=$barcode&formatted=y&key=$apiKey';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['products'] != null && data['products'].isNotEmpty) {
+          final product = data['products'][0];
+          setState(() {
+            _nameController.text = product['manufacturer'] + ' - ' + product['title'] ?? '';
+            _category = _mapCategory(product['category']);
+          });
+        } else {
+          _showSnackBar('No product information found for this barcode');
+        }
+      } else {
+        _showSnackBar('Failed to fetch product information');
+      }
+    } catch (e) {
+      _showSnackBar('Error fetching product information: $e');
+    }
+  }
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
 
 
   void _showPopup(String message) {
@@ -277,6 +322,13 @@ class _AddProductFormState extends State<AddProductForm> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Product'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.qr_code_scanner_outlined),
+            onPressed: _scanBarcode,
+            tooltip: 'Scan Barcode',
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -573,4 +625,22 @@ class _AddProductFormState extends State<AddProductForm> {
       ),
     );
   }
+
+  Category _mapCategory(String? categoryString) {
+    final lowercaseCategory = categoryString?.toLowerCase();
+
+    if (lowercaseCategory?.contains('food') == true) {
+      return Category.food;
+    } else if (lowercaseCategory?.contains('beverage') == true) {
+      return Category.beverage;
+    } else if (lowercaseCategory?.contains('medicine') == true) {
+      return Category.medicine;
+    } else if (lowercaseCategory?.contains('cleaning') == true) {
+      return Category.cleaning;
+    } else {
+      return Category.other;
+    }
+  }
+
+
 }
