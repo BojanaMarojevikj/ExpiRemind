@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../main.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -46,7 +47,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Register'),
+        title: Text('Register',
+          style: GoogleFonts.poppins(
+            textStyle: TextStyle(color: Color(0xFF0D47A1)),
+          ),),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -61,13 +65,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SizedBox(height: 20),
               TextField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(labelText: 'Email',
+                  labelStyle: GoogleFonts.poppins(
+                    textStyle: TextStyle(
+                      fontSize: 16.0,
+                    ),),),
               ),
               SizedBox(height: 10),
               TextField(
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: 'Password',
+                  labelStyle: GoogleFonts.poppins(
+                    textStyle: TextStyle(
+                      fontSize: 16.0,
+                    ),),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _passwordVisible ? Icons.visibility : Icons.visibility_off,
@@ -90,13 +102,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _register,
-                child: Text('Register'),
+                child: Text('Register',
+                  style: GoogleFonts.poppins(
+                    textStyle: TextStyle(color: Color(0xFF0D47A1)),
+                  ),),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('Already have an account? Login'),
+                child: Text('Already have an account? Login',
+                  style: GoogleFonts.poppins(
+                    textStyle: TextStyle(color: Color(0xFF0D47A1)),
+                  ),),
+
               ),
             ],
           ),

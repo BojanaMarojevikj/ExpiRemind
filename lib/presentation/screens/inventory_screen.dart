@@ -80,7 +80,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Inventory'),
+        title: const Text('Inventory',
+          style: TextStyle(
+            color: Color(0xFF0D47A1),
+          ),),
+        iconTheme: const IconThemeData(
+          color: Color(0xFF0D47A1),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

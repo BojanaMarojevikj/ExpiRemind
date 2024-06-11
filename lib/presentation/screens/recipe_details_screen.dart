@@ -1,6 +1,7 @@
 import 'package:expiremind/application/services/recipe_service.dart';
 import 'package:flutter/material.dart';
 import 'package:expiremind/domain/models/recipe.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class RecipeDetailsScreen extends StatefulWidget {
@@ -19,18 +20,22 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
     final confirmed = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Recipe'),
+        title: Text('Delete Recipe',style: GoogleFonts.poppins()
+        ),
         content: Text('Are you sure you want to delete this recipe?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false), // Cancel
-            child: Text('Cancel'),
+            child: Text('Cancel',style: GoogleFonts.poppins(
+              textStyle: TextStyle(color: Color(0xFF0D47A1)),
+            ),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true), // Delete
             child: Text(
               'Delete',
-              style: TextStyle(color: Colors.red),
+              style: GoogleFonts.poppins(textStyle: TextStyle(color: Colors.red)),
             ),
           ),
         ],
@@ -56,7 +61,9 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.recipe.title),
+        title: Text(widget.recipe.title, style: GoogleFonts.poppins(
+          textStyle: TextStyle(color: Color(0xFF0D47A1)),
+        ),),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -162,7 +169,11 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
             Center(
               child: ElevatedButton(
                 onPressed: _deleteRecipe,
-                child: Text('Delete Recipe'),
+                child: Text(
+                  'Delete Recipe',
+                  style: GoogleFonts.poppins(
+                  ),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white, // Text color to white

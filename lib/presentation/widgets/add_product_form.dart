@@ -80,7 +80,10 @@ class _AddProductFormState extends State<AddProductForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Product'),
+        title: Text('Add Product',
+          style: GoogleFonts.poppins(
+            textStyle: TextStyle(color: Color(0xFF0D47A1)),
+          ),),
       ),
       body: Form(
         key: _formKey,
@@ -343,10 +346,14 @@ class _AddProductFormState extends State<AddProductForm> {
 
                 ElevatedButton(
                   onPressed: _addProduct,
-                  child: const Text('Add Product'),
                   style: ElevatedButton.styleFrom(
-                    textStyle: const TextStyle(fontSize: 16.0),
+                    textStyle: const TextStyle(fontSize: 16.0, ),
                     minimumSize: const Size(double.infinity, 40.0),
+                  ),
+                  child: Text('Add Product',
+                    style: GoogleFonts.poppins(
+                      textStyle: TextStyle(color: Color(0xFF0D47A1)),
+                    ),
                   ),
                 ),
               ],

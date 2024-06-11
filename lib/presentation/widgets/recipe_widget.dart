@@ -55,7 +55,7 @@ class RecipeWidget extends StatelessWidget {
               Container(
                 height: 200,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: Color(0xFFe7edf6),
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Center(

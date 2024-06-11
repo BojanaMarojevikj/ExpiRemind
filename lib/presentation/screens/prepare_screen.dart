@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:expiremind/domain/models/product.dart';
 import 'package:expiremind/presentation/widgets/inventory_item_widget.dart';
 import 'package:expiremind/application/services/openai_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../application/services/product_service.dart';
 import '../widgets/search_bar.dart';
@@ -177,7 +178,10 @@ class _PrepareScreenState extends State<PrepareScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Prepare'),
+        title: const Text('Prepare',
+          style: TextStyle(
+            color: Color(0xFF0D47A1),
+          ),),
       ),
       body: Column(
         children: [
@@ -214,7 +218,11 @@ class _PrepareScreenState extends State<PrepareScreen> {
             child: ElevatedButton(
               onPressed:
               _selectedProducts.isNotEmpty ? _getRecipe : null,
-              child: const Text('Generate Recipe'),
+              child: Text('Generate Recipe',
+                style: GoogleFonts.poppins(
+                  textStyle: TextStyle(color: Color(0xFF0D47A1)),
+                ),
+              ),
             ),
           ),
         ],
