@@ -1,8 +1,12 @@
+import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:expiremind/application/services/product_service.dart';
 import 'package:expiremind/domain/models/product.dart';
 import 'package:expiremind/presentation/screens/product_details_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../../domain/enums/product_category.dart';
 import '../widgets/add_product_form.dart';
 import '../widgets/category_icon_selector.dart';
@@ -18,6 +22,10 @@ class InventoryScreen extends StatefulWidget {
 }
 
 class _InventoryScreenState extends State<InventoryScreen> {
+  late StreamSubscription<ConnectivityResult> subscription;
+  bool isDeviceConnected = false;
+  bool isAlertSet = false;
+
   final ProductService _productService = ProductService();
 
   List<Product> _productList = [];
@@ -29,12 +37,28 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void initState() {
     super.initState();
+    getConnectivity();
     _updateProductList();
   }
 
   @override
   void dispose() {
+    subscription.cancel();
     super.dispose();
+  }
+
+  void getConnectivity() {
+    subscription = Connectivity().onConnectivityChanged
+        .asyncMap((results) => results.first)
+        .listen((ConnectivityResult result) {
+      isDeviceConnected = result != ConnectivityResult.none;
+      if (!isDeviceConnected && !isAlertSet) {
+        showDialogBox();
+        setState(() => isAlertSet = true);
+      } else if (isDeviceConnected && isAlertSet) {
+        setState(() => isAlertSet = false);
+      }
+    });
   }
 
   void _updateProductList() async {
@@ -148,6 +172,36 @@ class _InventoryScreenState extends State<InventoryScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void showDialogBox() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('No Internet Connection'),
+          content: const Text(
+            'Your device is currently offline. Please check your internet connection and try again.',
+            style: TextStyle(fontSize: 16.0),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context, 'Cancel');
+                setState(() => isAlertSet = false);
+                isDeviceConnected =
+                await InternetConnectionChecker().hasConnection;
+                if (!isDeviceConnected && isAlertSet == false) {
+                  showDialogBox();
+                  setState(() => isAlertSet = true);
+                }
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
