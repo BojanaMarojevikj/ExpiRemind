@@ -42,7 +42,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Recipes'),
+        title: const Text('My Recipes',
+          style: TextStyle(
+            color: Color(0xFF0D47A1),
+          ),),
       ),
       body: ListView.builder(
         itemCount: _recipes.length,

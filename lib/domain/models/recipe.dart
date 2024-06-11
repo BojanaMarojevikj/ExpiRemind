@@ -8,6 +8,9 @@ class Recipe {
   final String description;
   final List<String> ingredients;
   final List<String> steps;
+  final int numberOfPeople;
+  final String cookingTime;
+  final String cookingLevel;
 
   Recipe({
     required this.id,
@@ -17,6 +20,9 @@ class Recipe {
     required this.description,
     required this.ingredients,
     required this.steps,
+    required this.numberOfPeople,
+    required this.cookingTime,
+    required this.cookingLevel,
   });
 
   Map<String, dynamic> toFirestore() {
@@ -28,6 +34,9 @@ class Recipe {
       'description': description,
       'ingredients': ingredients,
       'steps': steps,
+      'numberOfPeople': numberOfPeople,
+      'cookingTime': cookingTime,
+      'cookingLevel': cookingLevel,
     };
   }
 
@@ -45,6 +54,9 @@ class Recipe {
       ingredients: List<String>.from(data['ingredients'] ?? []),
       steps: List<String>.from(data['steps'] ?? []),
       timestamp: data['timestamp'] ?? Timestamp.now(),
+      numberOfPeople: data['numberOfPeople'] ?? 0,
+      cookingTime: data['cookingTime'] ?? '',
+      cookingLevel: data['cookingLevel'] ?? '',
     );
   }
 }

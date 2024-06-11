@@ -13,25 +13,12 @@ class _BottomNavigationState extends State<BottomNavigation> {
   int _selectedIndex = 0;
   late PageController _pageController;
 
-  // final PageStorageBucket bucket = PageStorageBucket();
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
   }
-
-  // final List<Widget> _screens = [
-  //   const InventoryScreen(),
-  //   PrepareScreen(),
-  //   RecipesScreen()
-  // ];
-  //
-  // void _onItemTapped(int index) {
-  //   setState(() {
-  //     _selectedIndex = index;
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +48,8 @@ class _BottomNavigationState extends State<BottomNavigation> {
             );
           });
         },
+        backgroundColor: Color(0xFFe7edf6),
+        selectedItemColor: Color(0xFF0D47A1),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.list),

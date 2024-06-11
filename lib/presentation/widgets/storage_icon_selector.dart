@@ -18,7 +18,7 @@ class StorageIconSelector extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: Color(0xFFe7edf6),
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: SizedBox(
@@ -40,7 +40,7 @@ class StorageIconSelector extends StatelessWidget {
                       SizedBox(height: 10),
                       Icon(
                         icon,
-                        color: isSelected ? Colors.blue : Colors.black,
+                        color: isSelected ? Color(0xFF0D47A1) : Colors.black,
                         size: 36,
                       ),
                     ],
@@ -50,7 +50,7 @@ class StorageIconSelector extends StatelessWidget {
                       child: Container(
                         height: 3,
                         width: 36,
-                        color: Colors.blue,
+                        color: Color(0xFF0D47A1),
                       ),
                     ),
                 ],

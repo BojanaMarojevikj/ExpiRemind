@@ -21,7 +21,7 @@ class InventoryItemWidget extends StatelessWidget {
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: Colors.grey[200],
+            backgroundColor: Color(0xFFe7edf6),
             backgroundImage: product.image != null ? NetworkImage(product.image!) : null,
             child: product.image == null
                 ? (product.category != null ? Icon(categoryIconMap[product.category]!) : null)
