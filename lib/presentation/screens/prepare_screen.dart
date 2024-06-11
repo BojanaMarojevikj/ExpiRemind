@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:expiremind/domain/models/product.dart';
 import 'package:expiremind/presentation/widgets/inventory_item_widget.dart';
 import 'package:expiremind/application/services/openai_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../application/services/product_service.dart';
 import '../widgets/search_bar.dart';
+import 'package:expiremind/presentation/widgets/storage_icon_selector.dart';
+import '../../domain/enums/storage_location.dart';
 
 class PrepareScreen extends StatefulWidget {
   @override
@@ -22,6 +25,7 @@ class _PrepareScreenState extends State<PrepareScreen> {
   List<Product> _selectedProducts = [];
   List<Product> _filteredList = [];
   String _searchText = "";
+  StorageLocation? _selectedStorage;
 
   @override
   void initState() {
@@ -67,7 +71,24 @@ class _PrepareScreenState extends State<PrepareScreen> {
     });
   }
 
-  Future<void> _getRecipe() async {
+  void _onStorageSelected(StorageLocation? storage) {
+    setState(() {
+      _selectedStorage = _selectedStorage == storage ? null : storage;
+      _filterProducts();
+    });
+  }
+
+  void _filterProducts() {
+    setState(() {
+      _filteredList = _productList.where((product) {
+        final matchesStorage = _selectedStorage == null || product.storage == _selectedStorage;
+        final matchesSearchText = product.name.toLowerCase().contains(_searchText.toLowerCase());
+        return matchesStorage && matchesSearchText;
+      }).toList();
+    });
+  }
+
+  void _getRecipe() async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -88,27 +109,48 @@ class _PrepareScreenState extends State<PrepareScreen> {
 
     String productNames = _selectedProducts.map((p) => p.name).join(', ');
     String prompt =
-        "I have the following products: $productNames. Can you suggest a recipe using them? Follow this format:\n\nTitle: <title>\nDescription: <one sentence description>\nIngredients: <comma-separated ingredients>\nSteps: <numbered steps>";
+        "I have the following products: $productNames. Can you suggest a recipe using them? Follow this format:\n\nTitle: <title>\nDescription: <one sentence description>\nIngredients: <comma-separated ingredients>\nSteps: <numbered steps>\n\nNumber of people: <number>\nCooking time: <time>\nCooking level: <beginner/intermediate/advanced>";
 
     final recommendation = await _openAIService.getRecommendations(prompt: prompt);
     if (recommendation != null) {
       final titlePattern = RegExp(r"Title:\s*(.*?)\s*Description:", caseSensitive: false);
       final descriptionPattern = RegExp(r"Description:\s*(.*?)\s*Ingredients:", caseSensitive: false);
       final ingredientsPattern = RegExp(r"Ingredients:\s*(.*?)\s*Steps:", caseSensitive: false);
-      final stepsPattern = RegExp(r"Steps:\s*([\s\S]*)", caseSensitive: false);
+      final stepsPattern = RegExp(r"Steps:\s*([\s\S]*)\s*Number of people:", caseSensitive: false);
+      final peoplePattern = RegExp(r"Number of people:\s*(.*?)\s*Cooking time:", caseSensitive: false);
+      final timePattern = RegExp(r"Cooking time:\s*(.*?)\s*Cooking level:", caseSensitive: false);
+      final levelPattern = RegExp(r"Cooking level:\s*(.*?)\s*$", caseSensitive: false);
 
       final titleMatch = titlePattern.firstMatch(recommendation);
       final descriptionMatch = descriptionPattern.firstMatch(recommendation);
       final ingredientsMatch = ingredientsPattern.firstMatch(recommendation);
       final stepsMatch = stepsPattern.firstMatch(recommendation);
+      final peopleMatch = peoplePattern.firstMatch(recommendation);
+      final timeMatch = timePattern.firstMatch(recommendation);
+      final levelMatch = levelPattern.firstMatch(recommendation);
 
-      if (titleMatch != null && descriptionMatch != null && ingredientsMatch != null && stepsMatch != null) {
+      if (titleMatch != null &&
+          descriptionMatch != null &&
+          ingredientsMatch != null &&
+          stepsMatch != null &&
+          peopleMatch != null &&
+          timeMatch != null &&
+          levelMatch != null) {
         final title = titleMatch.group(1);
         final description = descriptionMatch.group(1);
         final ingredientsString = ingredientsMatch.group(1);
         final stepsString = stepsMatch.group(1);
+        final people = peopleMatch.group(1);
+        final time = timeMatch.group(1);
+        final level = levelMatch.group(1);
 
-        if (title != null && description != null && ingredientsString != null && stepsString != null) {
+        if (title != null &&
+            description != null &&
+            ingredientsString != null &&
+            stepsString != null &&
+            people != null &&
+            time != null &&
+            level != null) {
           final ingredients = ingredientsString.split(',').map((e) => e.trim()).toList();
           final steps = stepsString.split(RegExp(r'\d+\.\s')).where((s) => s.isNotEmpty).map((s) => s.trim()).toList();
 
@@ -116,7 +158,14 @@ class _PrepareScreenState extends State<PrepareScreen> {
           final imageUrl = await _openAIService.generateImage(imagePrompt);
 
           if (imageUrl != null) {
-            _recipeService.addRecipe(title, description, ingredients, steps, imageUrl);
+            _recipeService.addRecipe(title: title,
+              description: description,
+              ingredients: ingredients,
+              steps: steps,
+              image: imageUrl,
+              numberOfPeople: int.parse(people),
+              cookingTime: time,
+              cookingLevel: level);
             Navigator.of(context).pop();
             showDialog(
               context: context,
@@ -153,15 +202,24 @@ class _PrepareScreenState extends State<PrepareScreen> {
   }
 
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Prepare'),
+        title: const Text('Prepare',
+          style: TextStyle(
+            color: Color(0xFF0D47A1),
+          ),),
       ),
       body: Column(
         children: [
           ExpiRemindSearchBar(onChanged: _onSearchTextChanged),
+          StorageIconSelector(
+            storageIconMap: storageIconMap,
+            selectedStorage: _selectedStorage,
+            onStorageSelected: _onStorageSelected,
+          ),
           Expanded(
             child: ListView.builder(
               itemCount: _filteredList.length,
@@ -189,7 +247,11 @@ class _PrepareScreenState extends State<PrepareScreen> {
             child: ElevatedButton(
               onPressed:
               _selectedProducts.isNotEmpty ? _getRecipe : null,
-              child: const Text('Generate Recipe'),
+              child: Text('Generate Recipe',
+                style: GoogleFonts.poppins(
+                  textStyle: TextStyle(color: Color(0xFF0D47A1)),
+                ),
+              ),
             ),
           ),
         ],

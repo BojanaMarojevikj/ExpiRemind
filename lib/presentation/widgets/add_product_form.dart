@@ -67,9 +67,9 @@ class _AddProductFormState extends State<AddProductForm> {
 
       await _productService.addProduct(product);
 
-      _notificationService.scheduleNotification(product.id.hashCode, 'Product expired', 'Your product ${product.name} has expired.', _expiryDate);
-      _notificationService.scheduleNotification(product.id.hashCode + 1, 'Product Expiring Soon', 'Your product ${product.name} is expiring today.', _expiryDate.subtract(const Duration(days: 1)).add(const Duration(hours: 12)));
-      _notificationService.scheduleNotification(product.id.hashCode + 2, 'Product Expiring Soon', 'Your product ${product.name} is expiring soon.', _expiryDate.subtract(const Duration(days: 3)).add(const Duration(hours: 12)));
+      _notificationService.scheduleNotification(product.id.hashCode, 'Product Expired', 'Your product ${product.name} has expired.', _expiryDate);
+      _notificationService.scheduleNotification(product.id.hashCode + 1, 'Product Expiring Today', 'Your product ${product.name} expires today. Check whether it is still usable and use it as soon as possible.', _expiryDate.subtract(const Duration(days: 1)).add(const Duration(hours: 12)));
+      _notificationService.scheduleNotification(product.id.hashCode + 2, 'Product Expiring Soon', 'Your product ${product.name} is about to expire. Use it or share it with someone you know.', _expiryDate.subtract(const Duration(days: 3)).add(const Duration(hours: 12)));
 
       Navigator.of(context).pop(product);
     }
@@ -80,7 +80,10 @@ class _AddProductFormState extends State<AddProductForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Product'),
+        title: Text('Add Product',
+          style: GoogleFonts.poppins(
+            textStyle: TextStyle(color: Color(0xFF0D47A1)),
+          ),),
       ),
       body: Form(
         key: _formKey,
@@ -343,10 +346,14 @@ class _AddProductFormState extends State<AddProductForm> {
 
                 ElevatedButton(
                   onPressed: _addProduct,
-                  child: const Text('Add Product'),
                   style: ElevatedButton.styleFrom(
-                    textStyle: const TextStyle(fontSize: 16.0),
+                    textStyle: const TextStyle(fontSize: 16.0, ),
                     minimumSize: const Size(double.infinity, 40.0),
+                  ),
+                  child: Text('Add Product',
+                    style: GoogleFonts.poppins(
+                      textStyle: TextStyle(color: Color(0xFF0D47A1)),
+                    ),
                   ),
                 ),
               ],

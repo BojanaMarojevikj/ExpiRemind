@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
-import '../../domain/enums/product_category.dart';
+import '../../domain/enums/storage_location.dart';
 
-class CategoryIconSelector extends StatelessWidget {
-  final Map<Category?, IconData> categoryIconMap;
-  final Category? selectedCategory;
-  final ValueChanged<Category?> onCategorySelected;
+class StorageIconSelector extends StatelessWidget {
+  final Map<StorageLocation?, IconData> storageIconMap;
+  final StorageLocation? selectedStorage;
+  final ValueChanged<StorageLocation?> onStorageSelected;
 
-  const CategoryIconSelector({
+  const StorageIconSelector({
     Key? key,
-    required this.categoryIconMap,
-    required this.selectedCategory,
-    required this.onCategorySelected,
+    required this.storageIconMap,
+    required this.selectedStorage,
+    required this.onStorageSelected,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-
     return Container(
       margin: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
@@ -26,13 +25,13 @@ class CategoryIconSelector extends StatelessWidget {
         height: 55.0,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: categoryIconMap.entries.map((entry) {
-            final category = entry.key;
+          children: storageIconMap.entries.map((entry) {
+            final storage = entry.key;
             final icon = entry.value;
-            final isSelected = selectedCategory == category;
+            final isSelected = selectedStorage == storage;
 
             return GestureDetector(
-              onTap: () => onCategorySelected(category),
+              onTap: () => onStorageSelected(storage),
               child: Stack(
                 alignment: Alignment.topCenter,
                 children: [

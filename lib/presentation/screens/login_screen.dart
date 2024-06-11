@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'register_screen.dart';
 import 'bottom_navigation.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -79,7 +80,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'),
+        title: Text(
+          'Login',
+          style: GoogleFonts.poppins(
+            textStyle: TextStyle(color: Color(0xFF0D47A1)),
+          ),
+
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -94,13 +101,24 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: 20),
               TextField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(labelText: 'Email',
+                  labelStyle: GoogleFonts.poppins(
+                    textStyle: TextStyle(
+                      fontSize: 16.0,
+                    ),
+                  ),
+                ),
               ),
               SizedBox(height: 10),
               TextField(
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: 'Password',
+                  labelStyle: GoogleFonts.poppins(
+                    textStyle: TextStyle(
+                      fontSize: 16.0,
+                    ),
+                  ),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _passwordVisible ? Icons.visibility : Icons.visibility_off,
@@ -118,12 +136,19 @@ class _LoginScreenState extends State<LoginScreen> {
               if (_errorMessage.isNotEmpty)
                 Text(
                   _errorMessage,
-                  style: TextStyle(color: Colors.red),
+                  style: GoogleFonts.poppins(
+                    textStyle: TextStyle(color: Colors.red),
+                  ),
                 ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _login,
-                child: Text('Login'),
+                child: Text(
+                  'Login',
+                  style: GoogleFonts.poppins(
+                    textStyle: TextStyle(color: Color(0xFF0D47A1)),
+                  ),
+                ),
               ),
               TextButton(
                 onPressed: () {
@@ -131,7 +156,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     MaterialPageRoute(builder: (context) => RegisterScreen()),
                   );
                 },
-                child: Text('Don\'t have an account? Register'),
+                child: Text(
+                  'Don\'t have an account? Register',
+                  style: GoogleFonts.poppins(
+                    textStyle: TextStyle(color: Color(0xFF0D47A1)),
+                  ),
+                ),
               ),
             ],
           ),

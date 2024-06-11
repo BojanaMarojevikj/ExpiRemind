@@ -86,7 +86,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Details'),
+        title: Text('Product Details',style: GoogleFonts.poppins(
+        textStyle: TextStyle(color: Color(0xFF0D47A1)),
+    ),),
         actions: [
           IconButton(
             icon: Icon(_isEditEnabled ? Icons.save : Icons.edit),
@@ -97,17 +99,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             onPressed: () => showDialog(
               context: context,
               builder: (context) => AlertDialog(
-                title: const Text('Delete Product'),
+                title: Text('Delete Product', style: GoogleFonts.poppins()),
                 content:
                     const Text('Are you sure you want to delete this product?'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: Text('Cancel',style: GoogleFonts.poppins(
+    textStyle: TextStyle(color: Color(0xFF0D47A1)),
+                  ),),
                   ),
                   TextButton(
                     onPressed: _deleteProduct,
-                    child: const Text('Delete'),
+                    child: Text('Delete', style: GoogleFonts.poppins(textStyle: TextStyle(color: Colors.red))),
                   ),
                 ],
               ),
@@ -422,7 +426,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         textStyle: const TextStyle(fontSize: 16.0),
                         minimumSize: const Size(double.infinity, 40.0),
                       ),
-                      child: const Text('Save'),
+                      child: Text('Save',style: GoogleFonts.poppins(
+                        textStyle: TextStyle(color: Color(0xFF0D47A1)),
+                      ),),
                     )
                   : ElevatedButton(
                       onPressed: _toggleEditMode,
@@ -430,7 +436,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         textStyle: const TextStyle(fontSize: 16.0),
                         minimumSize: const Size(double.infinity, 40.0),
                       ),
-                      child: const Text('Edit'),
+                      child: Text('Edit',style: GoogleFonts.poppins(
+                      textStyle: TextStyle(color: Color(0xFF0D47A1)),
+        ),),
                     ),
             ],
           ),
