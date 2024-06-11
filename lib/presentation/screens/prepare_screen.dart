@@ -7,6 +7,8 @@ import 'package:expiremind/application/services/openai_service.dart';
 
 import '../../application/services/product_service.dart';
 import '../widgets/search_bar.dart';
+import 'package:expiremind/presentation/widgets/storage_icon_selector.dart';
+import '../../domain/enums/storage_location.dart';
 
 class PrepareScreen extends StatefulWidget {
   @override
@@ -22,6 +24,7 @@ class _PrepareScreenState extends State<PrepareScreen> {
   List<Product> _selectedProducts = [];
   List<Product> _filteredList = [];
   String _searchText = "";
+  StorageLocation? _selectedStorage;
 
   @override
   void initState() {
@@ -64,6 +67,23 @@ class _PrepareScreenState extends State<PrepareScreen> {
             product.name.toLowerCase().contains(text.toLowerCase()))
             .toList();
       }
+    });
+  }
+
+  void _onStorageSelected(StorageLocation? storage) {
+    setState(() {
+      _selectedStorage = _selectedStorage == storage ? null : storage;
+      _filterProducts();
+    });
+  }
+
+  void _filterProducts() {
+    setState(() {
+      _filteredList = _productList.where((product) {
+        final matchesStorage = _selectedStorage == null || product.storage == _selectedStorage;
+        final matchesSearchText = product.name.toLowerCase().contains(_searchText.toLowerCase());
+        return matchesStorage && matchesSearchText;
+      }).toList();
     });
   }
 
@@ -162,6 +182,11 @@ class _PrepareScreenState extends State<PrepareScreen> {
       body: Column(
         children: [
           ExpiRemindSearchBar(onChanged: _onSearchTextChanged),
+          StorageIconSelector(
+            storageIconMap: storageIconMap,
+            selectedStorage: _selectedStorage,
+            onStorageSelected: _onStorageSelected,
+          ),
           Expanded(
             child: ListView.builder(
               itemCount: _filteredList.length,

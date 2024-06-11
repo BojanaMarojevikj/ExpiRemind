@@ -13,6 +13,8 @@ import '../../domain/enums/product_category.dart';
 import '../../domain/enums/storage_location.dart';
 import '../../domain/enums/unit.dart';
 import '../../domain/models/product.dart';
+import '../../application/services/notification_service.dart';
+
 
 class AddProductForm extends StatefulWidget {
   const AddProductForm({super.key});
@@ -25,6 +27,7 @@ class _AddProductFormState extends State<AddProductForm> {
   final _formKey = GlobalKey<FormState>();
 
   final ProductService _productService = ProductService();
+  final NotificationService _notificationService = NotificationService();
 
   final _nameController = TextEditingController();
   final _quantityController = TextEditingController();
@@ -260,6 +263,10 @@ class _AddProductFormState extends State<AddProductForm> {
       );
 
       await _productService.addProduct(product);
+
+      _notificationService.scheduleNotification(product.id.hashCode, 'Product Expired', 'Your product ${product.name} has expired.', _expiryDate);
+      _notificationService.scheduleNotification(product.id.hashCode + 1, 'Product Expiring Today', 'Your product ${product.name} expires today. Check whether it is still usable and use it as soon as possible.', _expiryDate.subtract(const Duration(days: 1)).add(const Duration(hours: 12)));
+      _notificationService.scheduleNotification(product.id.hashCode + 2, 'Product Expiring Soon', 'Your product ${product.name} is about to expire. Use it or share it with someone you know.', _expiryDate.subtract(const Duration(days: 3)).add(const Duration(hours: 12)));
 
       Navigator.of(context).pop(product);
     }
