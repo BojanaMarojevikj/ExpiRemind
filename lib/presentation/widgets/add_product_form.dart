@@ -1,6 +1,10 @@
+import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
@@ -20,6 +24,10 @@ class AddProductForm extends StatefulWidget {
 }
 
 class _AddProductFormState extends State<AddProductForm> {
+  late StreamSubscription<ConnectivityResult> subscription;
+  bool isDeviceConnected = false;
+  bool isAlertSet = false;
+
   final _formKey = GlobalKey<FormState>();
 
   final ProductService _productService = ProductService();
@@ -35,6 +43,7 @@ class _AddProductFormState extends State<AddProductForm> {
 
   @override
   void initState() {
+    getConnectivity();
     super.initState();
   }
 
@@ -42,8 +51,24 @@ class _AddProductFormState extends State<AddProductForm> {
   void dispose() {
     _nameController.dispose();
     _quantityController.dispose();
+    subscription.cancel();
     super.dispose();
   }
+
+  void getConnectivity() {
+    subscription = Connectivity().onConnectivityChanged
+        .asyncMap((results) => results.first)
+        .listen((ConnectivityResult result) {
+      isDeviceConnected = result != ConnectivityResult.none;
+      if (!isDeviceConnected && !isAlertSet) {
+        showDialogBox();
+        setState(() => isAlertSet = true);
+      } else if (isDeviceConnected && isAlertSet) {
+        setState(() => isAlertSet = false);
+      }
+    });
+  }
+
 
   // Form field and validation logic here (omitted for brevity)
   Future<void> _addProduct() async {
@@ -363,4 +388,35 @@ class _AddProductFormState extends State<AddProductForm> {
       ),
     );
   }
+
+  void showDialogBox() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('No Internet Connection'),
+          content: const Text(
+            'Your device is currently offline. Please check your internet connection and try again.',
+            style: TextStyle(fontSize: 16.0),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context, 'Cancel');
+                setState(() => isAlertSet = false);
+                isDeviceConnected =
+                await InternetConnectionChecker().hasConnection;
+                if (!isDeviceConnected && isAlertSet == false) {
+                  showDialogBox();
+                  setState(() => isAlertSet = true);
+                }
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 }

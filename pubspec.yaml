@@ -49,6 +49,9 @@ dependencies:
   google_mlkit_text_recognition: ^0.13.0
   flutter_local_notifications: ^17.1.2
   timezone: ^0.9.3
+  connectivity_plus: ^6.0.3
+  connectivity: ^3.0.6
+  internet_connection_checker: ^1.0.0+1
 
 dev_dependencies:
   flutter_test:
