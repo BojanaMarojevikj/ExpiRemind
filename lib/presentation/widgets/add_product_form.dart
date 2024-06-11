@@ -1,12 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
@@ -28,6 +31,10 @@ class AddProductForm extends StatefulWidget {
 }
 
 class _AddProductFormState extends State<AddProductForm> {
+  late StreamSubscription<ConnectivityResult> subscription;
+  bool isDeviceConnected = false;
+  bool isAlertSet = false;
+
   final _formKey = GlobalKey<FormState>();
 
   final ProductService _productService = ProductService();
@@ -47,6 +54,7 @@ class _AddProductFormState extends State<AddProductForm> {
 
   @override
   void initState() {
+    getConnectivity();
     super.initState();
   }
 
@@ -54,8 +62,24 @@ class _AddProductFormState extends State<AddProductForm> {
   void dispose() {
     _nameController.dispose();
     _quantityController.dispose();
+    subscription.cancel();
     super.dispose();
   }
+
+  void getConnectivity() {
+    subscription = Connectivity().onConnectivityChanged
+        .asyncMap((results) => results.first)
+        .listen((ConnectivityResult result) {
+      isDeviceConnected = result != ConnectivityResult.none;
+      if (!isDeviceConnected && !isAlertSet) {
+        showDialogBox();
+        setState(() => isAlertSet = true);
+      } else if (isDeviceConnected && isAlertSet) {
+        setState(() => isAlertSet = false);
+      }
+    });
+  }
+
 
   // Form field and validation logic here (omitted for brevity)
 
@@ -632,6 +656,37 @@ class _AddProductFormState extends State<AddProductForm> {
       ),
     );
   }
+
+  void showDialogBox() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('No Internet Connection'),
+          content: const Text(
+            'Your device is currently offline. Please check your internet connection and try again.',
+            style: TextStyle(fontSize: 16.0),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context, 'Cancel');
+                setState(() => isAlertSet = false);
+                isDeviceConnected =
+                await InternetConnectionChecker().hasConnection;
+                if (!isDeviceConnected && isAlertSet == false) {
+                  showDialogBox();
+                  setState(() => isAlertSet = true);
+                }
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   Category _mapCategory(String? categoryString) {
     final lowercaseCategory = categoryString?.toLowerCase();
