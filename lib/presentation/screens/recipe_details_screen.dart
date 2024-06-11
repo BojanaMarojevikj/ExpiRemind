@@ -20,15 +20,19 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
     final confirmed = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Recipe',style: GoogleFonts.poppins()
+        title: Text(
+          'Delete Recipe',
+          style: GoogleFonts.poppins(),
         ),
         content: Text('Are you sure you want to delete this recipe?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false), // Cancel
-            child: Text('Cancel',style: GoogleFonts.poppins(
-              textStyle: TextStyle(color: Color(0xFF0D47A1)),
-            ),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(
+                textStyle: TextStyle(color: Color(0xFF0D47A1)),
+              ),
             ),
           ),
           TextButton(
@@ -54,6 +58,35 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
     }
   }
 
+  Icon _getCookingLevelIcon(String cookingLevel) {
+    IconData icon;
+    Color color;
+
+    switch (cookingLevel) {
+      case 'Beginner':
+        icon = Icons.accessibility;
+        color = Colors.green;
+        break;
+      case 'Intermediate':
+        icon = Icons.accessibility;
+        color = Colors.yellow;
+        break;
+      case 'Advanced':
+        icon = Icons.accessibility;
+        color = Colors.red;
+        break;
+      default:
+        icon = Icons.accessibility_new;
+        color = Colors.black;
+        break;
+    }
+
+    return Icon(
+      icon,
+      color: color,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final formattedTimestamp =
@@ -61,9 +94,12 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.recipe.title, style: GoogleFonts.poppins(
-          textStyle: TextStyle(color: Color(0xFF0D47A1)),
-        ),),
+        title: Text(
+          widget.recipe.title,
+          style: GoogleFonts.poppins(
+            textStyle: TextStyle(color: Color(0xFF0D47A1)),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -91,6 +127,31 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
             Text(
               formattedTimestamp,
               style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 16.0),
+            Row(
+              children: [
+                Icon(Icons.people),
+                SizedBox(width: 8.0),
+                Text(
+                  '${widget.recipe.numberOfPeople} people',
+                  style: TextStyle(fontSize: 16.0),
+                ),
+                SizedBox(width: 16.0),
+                Icon(Icons.access_time),
+                SizedBox(width: 8.0),
+                Text(
+                  '${widget.recipe.cookingTime}',
+                  style: TextStyle(fontSize: 16.0),
+                ),
+                SizedBox(width: 16.0),
+                _getCookingLevelIcon(widget.recipe.cookingLevel),
+                SizedBox(width: 8.0),
+                Text(
+                  '${widget.recipe.cookingLevel}',
+                  style: TextStyle(fontSize: 16.0),
+                ),
+              ],
             ),
             const SizedBox(height: 16.0),
             Card(
@@ -171,8 +232,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                 onPressed: _deleteRecipe,
                 child: Text(
                   'Delete Recipe',
-                  style: GoogleFonts.poppins(
-                  ),
+                  style: GoogleFonts.poppins(),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
