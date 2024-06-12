@@ -1,27 +1,24 @@
-import 'dart:convert';
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import 'package:http/http.dart' as http;
 
+import '../../application/services/barcode_service.dart';
+import '../../application/services/date_scanning_service.dart';
+import '../../application/services/notification_service.dart';
 import '../../application/services/product_service.dart';
 import '../../domain/enums/product_category.dart';
 import '../../domain/enums/storage_location.dart';
 import '../../domain/enums/unit.dart';
 import '../../domain/models/env.dart';
 import '../../domain/models/product.dart';
-import '../../application/services/notification_service.dart';
-
 
 class AddProductForm extends StatefulWidget {
   const AddProductForm({super.key});
@@ -39,6 +36,8 @@ class _AddProductFormState extends State<AddProductForm> {
 
   final ProductService _productService = ProductService();
   final NotificationService _notificationService = NotificationService();
+  final BarcodeService _barcodeService = BarcodeService();
+  final DateScanningService _dateScanningService = DateScanningService();
 
   final _nameController = TextEditingController();
   final _quantityController = TextEditingController();
@@ -67,7 +66,8 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   void getConnectivity() {
-    subscription = Connectivity().onConnectivityChanged
+    subscription = Connectivity()
+        .onConnectivityChanged
         .asyncMap((results) => results.first)
         .listen((ConnectivityResult result) {
       isDeviceConnected = result != ConnectivityResult.none;
@@ -80,7 +80,6 @@ class _AddProductFormState extends State<AddProductForm> {
     });
   }
 
-
   // Form field and validation logic here (omitted for brevity)
 
   Future<void> _getImage() async {
@@ -89,14 +88,14 @@ class _AddProductFormState extends State<AddProductForm> {
     });
 
     final pickedFile =
-    await ImagePicker().pickImage(source: ImageSource.camera);
+        await ImagePicker().pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
       });
 
-      await _scanText();
+      await _scanDate();
 
       setState(() {
         _isLoading = false;
@@ -108,148 +107,36 @@ class _AddProductFormState extends State<AddProductForm> {
     }
   }
 
-  Future<void> _scanText() async {
+  Future<void> _scanDate() async {
     if (_image == null) return;
 
-    final inputImage = InputImage.fromFile(_image!);
-    final textDetector = TextRecognizer();
-    final RecognizedText recognisedText =
-    await textDetector.processImage(inputImage);
+    try {
+      final detectedText =
+          await _dateScanningService.scanTextFromImage(_image!);
 
-    String detectedText = recognisedText.text;
+      setState(() {
+        _detectedText = detectedText;
+      });
+      print('Detected text: $_detectedText');
 
-    setState(() {
-      _detectedText = detectedText;
-    });
-    print('Detected text: $_detectedText');
+      final detectedDate =
+          _dateScanningService.extractDateFromText(detectedText);
 
-    _extractDateFromText(detectedText);
-
-    textDetector.close();
-  }
-
-  void _extractDateFromText(String text) {
-    // Comprehensive regex pattern to capture various date formats
-    final datePattern = RegExp(
-      r'\b(?:'
-      r'(\d{1,2}[./-]\d{1,2}[./-]\d{2,4})|' // Matches 01.01.27, 01/01/2027, etc.
-      r'(\d{1,2}\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{2,4})|' // Matches 01 jan 27, 01 jan 2027, etc.
-      r'(\d{4}[./-]\d{1,2})|' // Matches 2027.01, 2027-01, etc.
-      r'(\d{1,2}\s+\d{4})|' // Matches 01 2027
-      r'(\d{1,2}[./-]\d{4})|' // Matches 01.2027
-      r'(\d{1,2}[./-]\d{1,2}[./-]\d{4})|' // Matches 05/02/2026
-      r'(\d{1,2}\s+\d{1,2}\s+\d{4})|' // Matches 24 06 2024
-      r'(\d{2}[./-\s]\d{4})|' // Matches 13-2024, 13/2024, 13.2024
-      r'(\d{4}[./-\s]\d{2})|' // Matches 2024-12, 2024/12, 2024.12
-      r'(\d{1,2}[./\s]\d{4})' // Matches 12 2024
-      r')\b',
-      caseSensitive: false,
-    );
-
-    final match = datePattern.firstMatch(text);
-
-    if (match != null) {
-      final dateString = match.group(0);
-
-      if (dateString != null) {
-        try {
-          // Handle "dd-MM-yyyy" and "dd.MM.yyyy" format
-          final parsedDate1 = DateFormat('dd-MM-yyyy').parseStrict(dateString.replaceAll(RegExp(r'[./\s]'), '-'));
-          setState(() {
-            _expiryDate = parsedDate1;
-          });
-          print('Parsed date (dd-MM-yyyy): $_expiryDate');
-          return;
-        } catch (e) {}
-
-        try {
-          // Handle "MM-dd-yyyy" format
-          final parsedDate2 = DateFormat('MM-dd-yyyy').parseStrict(dateString.replaceAll(RegExp(r'[./\s]'), '-'));
-          setState(() {
-            _expiryDate = parsedDate2;
-          });
-          print('Parsed date (MM-dd-yyyy): $_expiryDate');
-          return;
-        } catch (e) {}
-
-        try {
-          // Handle "MM/yyyy" and "MM.yyyy" by assuming the first day of the month
-          final partialDatePattern = RegExp(r'(\d{1,2})[./\s](\d{4})');
-          final partialMatch = partialDatePattern.firstMatch(dateString);
-          if (partialMatch != null) {
-            int? month;
-            int? year;
-
-            if (partialMatch.group(1) != null && partialMatch.group(2) != null) {
-              // Matches MM/yyyy or MM.yyyy
-              month = int.parse(partialMatch.group(1)!);
-              year = int.parse(partialMatch.group(2)!);
-            }
-
-            if (month != null && year != null) {
-              final parsedDate3 = DateTime(year, month, 1);
-              setState(() {
-                _expiryDate = parsedDate3;
-              });
-              print('Parsed partial date: $_expiryDate');
-              return;
-            } else {
-              print('Failed to parse date: $dateString');
-              return;
-            }
-          }
-        } catch (e) {}
-
-        try {
-          // Handle "yyyy/MM"  by assuming the first day of the month
-          final partialDatePattern = RegExp(r'(\d{4})[./\s](\d{1,2})');
-          final partialMatch = partialDatePattern.firstMatch(dateString);
-          if (partialMatch != null) {
-            int? month;
-            int? year;
-
-            if (partialMatch.group(1) != null && partialMatch.group(2) != null) {
-              // Matches MM/yyyy or MM.yyyy
-              month = int.parse(partialMatch.group(2)!);
-              year = int.parse(partialMatch.group(1)!);
-            }
-
-            if (month != null && year != null) {
-              final parsedDate3 = DateTime(year, month, 1);
-              setState(() {
-                _expiryDate = parsedDate3;
-              });
-              print('Parsed partial date: $_expiryDate');
-              return;
-            } else {
-              print('Failed to parse date: $dateString');
-              return;
-            }
-          }
-        } catch (e) {}
-
-
-        try {
-          // Handle "MM/dd/yyyy" format for 05/02/2026
-          final parsedDate4 = DateFormat('MM/dd/yyyy').parseStrict(dateString);
-          setState(() {
-            _expiryDate = parsedDate4;
-          });
-          print('Parsed date (MM/dd/yyyy): $_expiryDate');
-          return;
-        } catch (e) {}
-
-        _showPopup('Failed to parse date: $dateString');
-        print('Failed to parse date: $dateString');
+      if (detectedDate != null) {
+        setState(() {
+          _expiryDate = detectedDate;
+        });
+        print('Parsed date: $_expiryDate');
+      } else {
+        _showPopup('No valid date found.');
       }
-    } else {
-      _showPopup('No valid date found in the text.');
+    } catch (e) {
+      _showPopup('No valid date found.');
     }
   }
 
   Future<void> _scanBarcode() async {
-    String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
-        '#ff6666', 'Cancel', true, ScanMode.BARCODE);
+    String barcodeScanResult = await _barcodeService.scanBarcode();
 
     if (barcodeScanResult != '-1') {
       await _fetchProductInfo(barcodeScanResult);
@@ -257,30 +144,18 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   Future<void> _fetchProductInfo(String barcode) async {
-    String apiKey = Env.barcodeLookupApiKey;
-    final url =
-        'https://api.barcodelookup.com/v3/products?barcode=$barcode&formatted=y&key=$apiKey';
-
     try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['products'] != null && data['products'].isNotEmpty) {
-          final product = data['products'][0];
-          setState(() {
-            _nameController.text = product['manufacturer'] + ' - ' + product['title'] ?? '';
-            _category = _mapCategory(product['category']);
-          });
-        } else {
-          _showSnackBar('No product information found for this barcode');
-        }
-      } else {
-        _showSnackBar('Failed to fetch product information');
-      }
+      final product = await _barcodeService.fetchProductInfo(
+          barcode, Env.barcodeLookupApiKey);
+      setState(() {
+        _nameController.text = product['title'] ?? '';
+        _category = _mapCategory(product['category']);
+      });
     } catch (e) {
-      _showSnackBar('Error fetching product information: $e');
+      _showSnackBar("Product could not be found.");
     }
   }
+
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -289,7 +164,6 @@ class _AddProductFormState extends State<AddProductForm> {
       ),
     );
   }
-
 
   void _showPopup(String message) {
     showDialog(
@@ -310,7 +184,6 @@ class _AddProductFormState extends State<AddProductForm> {
       },
     );
   }
-
 
   Future<void> _addProduct() async {
     if (_formKey.currentState!.validate()) {
@@ -345,10 +218,12 @@ class _AddProductFormState extends State<AddProductForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Product',
+        title: Text(
+          'Add Product',
           style: GoogleFonts.poppins(
             textStyle: TextStyle(color: Color(0xFF0D47A1)),
-          ),),
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.qr_code_scanner_outlined),
@@ -397,7 +272,7 @@ class _AddProductFormState extends State<AddProductForm> {
                   'Total Product',
                   style: GoogleFonts.poppins(
                       textStyle:
-                      const TextStyle(color: Colors.black, fontSize: 18.0)),
+                          const TextStyle(color: Colors.black, fontSize: 18.0)),
                 ),
                 const SizedBox(height: 5.0),
                 Column(
@@ -427,27 +302,26 @@ class _AddProductFormState extends State<AddProductForm> {
                       },
                       controller: _quantityController,
                     ),
-
                     const SizedBox(height: 5.0),
-
                     DropdownButtonFormField<Unit>(
                       value: _unit,
                       items: Unit.values
                           .map((unit) => DropdownMenuItem(
-                        value: unit,
-                        child: Text(
-                          unit.name,
-                          style: GoogleFonts.poppins(
-                            textStyle: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 14.0,
-                            ),
-                          ),
-                        ),
-                      ))
+                                value: unit,
+                                child: Text(
+                                  unit.name,
+                                  style: GoogleFonts.poppins(
+                                    textStyle: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 14.0,
+                                    ),
+                                  ),
+                                ),
+                              ))
                           .toList(),
                       onChanged: (value) => setState(() => _unit = value!),
-                      validator: (value) => value == null ? 'Please select a value.' : null,
+                      validator: (value) =>
+                          value == null ? 'Please select a value.' : null,
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.all(8.0),
                         border: OutlineInputBorder(
@@ -465,27 +339,28 @@ class _AddProductFormState extends State<AddProductForm> {
                   'Product Category',
                   style: GoogleFonts.poppins(
                       textStyle:
-                      const TextStyle(color: Colors.black, fontSize: 18.0)),
+                          const TextStyle(color: Colors.black, fontSize: 18.0)),
                 ),
                 const SizedBox(height: 5.0),
                 DropdownButtonFormField<Category>(
                   value: _category,
                   items: Category.values
                       .map((unit) => DropdownMenuItem(
-                    value: unit,
-                    child: Text(
-                      unit.name,
-                      style: GoogleFonts.poppins(
-                        textStyle: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 14.0,
-                        ),
-                      ),
-                    ),
-                  ))
+                            value: unit,
+                            child: Text(
+                              unit.name,
+                              style: GoogleFonts.poppins(
+                                textStyle: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14.0,
+                                ),
+                              ),
+                            ),
+                          ))
                       .toList(),
                   onChanged: (value) => setState(() => _category = value!),
-                  validator: (value) => value == null ? 'Please select a value.' : null,
+                  validator: (value) =>
+                      value == null ? 'Please select a value.' : null,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.all(8.0),
                     border: OutlineInputBorder(
@@ -501,27 +376,28 @@ class _AddProductFormState extends State<AddProductForm> {
                   'Storage Location',
                   style: GoogleFonts.poppins(
                       textStyle:
-                      const TextStyle(color: Colors.black, fontSize: 18.0)),
+                          const TextStyle(color: Colors.black, fontSize: 18.0)),
                 ),
                 const SizedBox(height: 5.0),
                 DropdownButtonFormField<StorageLocation>(
                   value: _storage,
                   items: StorageLocation.values
                       .map((unit) => DropdownMenuItem(
-                    value: unit,
-                    child: Text(
-                      unit.name,
-                      style: GoogleFonts.poppins(
-                        textStyle: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 14.0,
-                        ),
-                      ),
-                    ),
-                  ))
+                            value: unit,
+                            child: Text(
+                              unit.name,
+                              style: GoogleFonts.poppins(
+                                textStyle: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14.0,
+                                ),
+                              ),
+                            ),
+                          ))
                       .toList(),
                   onChanged: (value) => setState(() => _storage = value!),
-                  validator: (value) => value == null ? 'Please select a value.' : null,
+                  validator: (value) =>
+                      value == null ? 'Please select a value.' : null,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.all(8.0),
                     border: OutlineInputBorder(
@@ -537,7 +413,7 @@ class _AddProductFormState extends State<AddProductForm> {
                   'Date Information',
                   style: GoogleFonts.poppins(
                       textStyle:
-                      const TextStyle(color: Colors.black, fontSize: 18.0)),
+                          const TextStyle(color: Colors.black, fontSize: 18.0)),
                 ),
                 const SizedBox(height: 5.0),
 
@@ -546,7 +422,7 @@ class _AddProductFormState extends State<AddProductForm> {
                   'Buy Date',
                   style: GoogleFonts.poppins(
                       textStyle:
-                      const TextStyle(color: Colors.black, fontSize: 14.0)),
+                          const TextStyle(color: Colors.black, fontSize: 14.0)),
                 ),
                 const SizedBox(height: 2.0),
                 Row(
@@ -561,7 +437,8 @@ class _AddProductFormState extends State<AddProductForm> {
                           lastDate: DateTime.now(),
                         );
                         if (pickedDate != null) {
-                          setState(() => _buyDate = pickedDate.toUtc().toLocal());
+                          setState(
+                              () => _buyDate = pickedDate.toUtc().toLocal());
                         }
                       },
                     ),
@@ -584,7 +461,7 @@ class _AddProductFormState extends State<AddProductForm> {
                   'Expiry Date',
                   style: GoogleFonts.poppins(
                       textStyle:
-                      const TextStyle(color: Colors.black, fontSize: 14.0)),
+                          const TextStyle(color: Colors.black, fontSize: 14.0)),
                 ),
                 const SizedBox(height: 2.0),
                 Row(
@@ -603,8 +480,8 @@ class _AddProductFormState extends State<AddProductForm> {
                                     .add(const Duration(days: 365 * 10)),
                               );
                               if (pickedDate != null) {
-                                setState(() => _expiryDate =
-                                    pickedDate.toUtc().toLocal());
+                                setState(() =>
+                                    _expiryDate = pickedDate.toUtc().toLocal());
                               }
                             },
                           ),
@@ -640,10 +517,13 @@ class _AddProductFormState extends State<AddProductForm> {
                 ElevatedButton(
                   onPressed: _addProduct,
                   style: ElevatedButton.styleFrom(
-                    textStyle: const TextStyle(fontSize: 16.0, ),
+                    textStyle: const TextStyle(
+                      fontSize: 16.0,
+                    ),
                     minimumSize: const Size(double.infinity, 40.0),
                   ),
-                  child: Text('Add Product',
+                  child: Text(
+                    'Add Product',
                     style: GoogleFonts.poppins(
                       textStyle: TextStyle(color: Color(0xFF0D47A1)),
                     ),
@@ -673,7 +553,7 @@ class _AddProductFormState extends State<AddProductForm> {
                 Navigator.pop(context, 'Cancel');
                 setState(() => isAlertSet = false);
                 isDeviceConnected =
-                await InternetConnectionChecker().hasConnection;
+                    await InternetConnectionChecker().hasConnection;
                 if (!isDeviceConnected && isAlertSet == false) {
                   showDialogBox();
                   setState(() => isAlertSet = true);
@@ -686,7 +566,6 @@ class _AddProductFormState extends State<AddProductForm> {
       },
     );
   }
-
 
   Category _mapCategory(String? categoryString) {
     final lowercaseCategory = categoryString?.toLowerCase();
@@ -703,6 +582,4 @@ class _AddProductFormState extends State<AddProductForm> {
       return Category.other;
     }
   }
-
-
 }
